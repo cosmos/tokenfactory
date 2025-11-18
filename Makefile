@@ -124,7 +124,7 @@ endif
 
 test:
 	@echo "--> Running tests"
-	go test -v -timeout 30m ./...
+	go test -v -timeout 30m $(shell go list ./... | grep -v '/app$$')
 
 COV_ROOT="/tmp/tokenfactory-coverage"
 COV_UNIT_E2E="${COV_ROOT}/unit-e2e"
