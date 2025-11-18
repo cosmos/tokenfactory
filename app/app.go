@@ -149,7 +149,6 @@ var (
 		tokenfactorytypes.EnableBurnFrom,
 		tokenfactorytypes.EnableForceTransfer,
 		tokenfactorytypes.EnableSetMetadata,
-		tokenfactorytypes.EnableSudoMint,
 		tokenfactorytypes.EnableCommunityPoolFeeFunding,
 	}
 )
@@ -526,7 +525,6 @@ func NewApp(
 		app.BankKeeper,
 		app.DistrKeeper,
 		tokenFactoryCapabilities,
-		tokenfactorykeeper.DefaultIsSudoAdminFunc,
 		govModAddress,
 	)
 	wasmOpts = append(wasmOpts, bindings.RegisterCustomPlugins(app.BankKeeper, &app.TokenFactoryKeeper)...)
