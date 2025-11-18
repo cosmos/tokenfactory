@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	apphelpers "github.com/strangelove-ventures/tokenfactory/app/helpers"
 	appparams "github.com/strangelove-ventures/tokenfactory/app/params"
 	"github.com/stretchr/testify/require"
@@ -21,11 +21,10 @@ import (
 	tmtypes "github.com/cometbft/cometbft/types"
 
 	dbm "github.com/cosmos/cosmos-db"
-	icatypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/controller/types"
-	icahosttypes "github.com/cosmos/ibc-go/v8/modules/apps/27-interchain-accounts/host/types"
-	transfertypes "github.com/cosmos/ibc-go/v8/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types" //nolint:all
-	connectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
+	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller/types"
+	icahosttypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/types"
+	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types" //nolint:all
 
 	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
@@ -182,7 +181,7 @@ func setup(t *testing.T, withGenesis bool, opts ...wasmkeeper.Option) (*TokenFac
 		db,
 		nil,
 		true,
-		EmptyAppOptions{},
+		appOptions,
 		opts,
 		bam.SetChainID(SimAppChainID),
 		bam.SetSnapshot(snapshotStore, snapshottypes.SnapshotOptions{KeepRecent: 2}),
@@ -208,9 +207,8 @@ func setup(t *testing.T, withGenesis bool, opts ...wasmkeeper.Option) (*TokenFac
 	app.IBCKeeper.ClientKeeper.SetParams(ctx, clienttypes.DefaultParams())
 	app.IBCKeeper.ClientKeeper.SetNextClientSequence(ctx, 0)
 	app.IBCKeeper.ConnectionKeeper.SetNextConnectionSequence(ctx, 0)
-	app.IBCKeeper.ConnectionKeeper.SetParams(ctx, connectiontypes.DefaultParams())
 	app.IBCKeeper.ChannelKeeper.SetNextChannelSequence(ctx, 0)
-	app.WasmKeeper.SetParams(ctx, wasm.DefaultParams())
+	app.WasmKeeper.SetParams(ctx, wasmtypes.DefaultParams())
 	app.ICAControllerKeeper.SetParams(ctx, icatypes.DefaultParams())
 	app.ICAHostKeeper.SetParams(ctx, icahosttypes.DefaultParams())
 	app.GovKeeper.Constitution.Set(ctx, "")
