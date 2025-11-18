@@ -124,7 +124,7 @@ endif
 
 test:
 	@echo "--> Running tests"
-	go test -v ./...
+	go test -v -p 1 ./...
 
 COV_ROOT="/tmp/tokenfactory-coverage"
 COV_UNIT_E2E="${COV_ROOT}/unit-e2e"
