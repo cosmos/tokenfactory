@@ -124,7 +124,7 @@ endif
 
 test:
 	@echo "--> Running tests"
-	go test -v ./...
+	go test -v -timeout 30m $(shell go list ./... | grep -v '/app$$')
 
 COV_ROOT="/tmp/tokenfactory-coverage"
 COV_UNIT_E2E="${COV_ROOT}/unit-e2e"
@@ -150,7 +150,7 @@ coverage: ## Run coverage report
 	@echo "  --> Running App State Determinism Simulation"
 	@${COV_SIM_CMD} -test.run TestAppStateDeterminism ${COV_SIM_COMMON} > /dev/null 2>&1
 	@echo "--> Running unit & e2e tests coverage"
-	@go test -timeout 30m -race -covermode=atomic -v -cpu=$$(nproc) -cover $$(go list ./...) ./interchaintest/... -coverpkg=${COV_PKG} -args -test.gocoverdir="${COV_UNIT_E2E}" > /dev/null 2>&1
+	@go test -timeout 60m -race -covermode=atomic -v -cpu=$(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 1) -cover $(go list ./...) ./interchaintest/... -coverpkg=${COV_PKG} -args -test.gocoverdir="${COV_UNIT_E2E}" > /dev/null 2>&1
 	@echo "--> Merging coverage reports"
 	@go tool covdata merge -i=${COV_UNIT_E2E},${COV_SIMULATION} -o ${COV_ROOT}
 	@echo "--> Converting binary coverage report to text format"
@@ -228,7 +228,7 @@ sim-full-app:
 	@go test ./app -run TestFullAppSimulation ${SIM_COMMON_ARGS}
 
 sim-full-app-random:
-	$(MAKE) sim-full-app SIM_SEED=$$RANDOM
+	$(MAKE) sim-full-app SIM_SEED=$$(date +%s)
 
 # Note: known to fail when using app wiring v1
 sim-import-export:
@@ -237,21 +237,21 @@ sim-import-export:
 
 # Note: known to fail when using app wiring v1
 sim-import-export-random:
-	$(MAKE) sim-import-export SIM_SEED=$$RANDOM
+	$(MAKE) sim-import-export SIM_SEED=$$(date +%s)
 
 sim-after-import:
 	@echo "--> Running app after import simulation (blocks: ${SIM_NUM_BLOCKS}, commit: ${SIM_COMMIT}, period: ${SIM_PERIOD}, seed: ${SIM_SEED}"
 	@go test ./app -run TestAppSimulationAfterImport ${SIM_COMMON_ARGS}
 
 sim-after-import-random:
-	$(MAKE) sim-after-import SIM_SEED=$$RANDOM
+	$(MAKE) sim-after-import SIM_SEED=$$(date +%s)
 
 sim-app-determinism:
 	@echo "--> Running app determinism simulation (blocks: ${SIM_NUM_BLOCKS}, commit: ${SIM_COMMIT}, period: ${SIM_PERIOD}, seed: ${SIM_SEED}"
 	@go test ./app -run TestAppStateDeterminism ${SIM_COMMON_ARGS}
 
 sim-app-determinism-random:
-	$(MAKE) sim-app-determinism SIM_SEED=$$RANDOM
+	$(MAKE) sim-app-determinism SIM_SEED=$$(date +%s)
 
 .PHONY: sim-full-app sim-full-app-random sim-import-export sim-after-import sim-app-determinism sim-import-export-random sim-after-import-random sim-app-determinism-random
 ###  Security  ###

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/CosmWasm/wasmd/x/wasm/keeper"
+	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/strangelove-ventures/tokenfactory/app"
 	"github.com/stretchr/testify/require"
 
@@ -50,8 +51,10 @@ func storeReflectCode(t *testing.T, ctx sdk.Context, app *app.TokenFactoryApp, a
 	wasmCode, err := os.ReadFile("./testdata/token_reflect.wasm")
 	require.NoError(t, err)
 
+	// Use AccessTypeEverybody without passing address parameter
+	instantiateAccess := wasmtypes.AccessTypeEverybody.With()
 	contractKeeper := keeper.NewDefaultPermissionKeeper(app.WasmKeeper)
-	codeID, _, err := contractKeeper.Create(ctx, addr, wasmCode, nil)
+	codeID, _, err := contractKeeper.Create(ctx, addr, wasmCode, &instantiateAccess)
 	require.NoError(t, err)
 
 	return codeID

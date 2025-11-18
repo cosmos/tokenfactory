@@ -2,6 +2,8 @@ package apptesting
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/strangelove-ventures/tokenfactory/app"
@@ -48,6 +50,7 @@ type KeeperTestHelper struct {
 // Setup sets up basic environment for suite (App, Ctx, and test accounts)
 func (s *KeeperTestHelper) Setup() {
 	t := s.T()
+	s.CleanupWasmCache()
 	s.Ctx, s.App = app.Setup(t)
 
 	s.QueryHelper = &baseapp.QueryServiceTestHelper{
@@ -58,6 +61,15 @@ func (s *KeeperTestHelper) Setup() {
 
 	s.StakingHelper = stakinghelper.NewHelper(s.Suite.T(), s.Ctx, s.App.StakingKeeper)
 	s.StakingHelper.Denom = "stake"
+}
+
+// CleanupWasmCache removes stale WASM VM lock files
+func (s *KeeperTestHelper) CleanupWasmCache() {
+	homeDir, err := os.UserHomeDir()
+	if err == nil {
+		lockPath := filepath.Join(homeDir, ".wasmd", "wasm", "wasm", "cache", "exclusive.lock")
+		os.Remove(lockPath) // Ignore error if file doesn't exist
+	}
 }
 
 func (s *KeeperTestHelper) SetupTestForInitGenesis() {

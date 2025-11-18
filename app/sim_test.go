@@ -47,7 +47,7 @@ func TestFullAppSimulation(t *testing.T) {
 	config := simcli.NewConfigFromFlags()
 	config.ChainID = SimAppChainID
 
-	db, dir, logger, skip, err := simtestutil.SetupSimulation(config, "leveldb-app-sim", "Simulation", simcli.FlagVerboseValue, simcli.FlagEnabledValue)
+	db, dir, logger, skip, err := simtestutil.SetupSimulation(config, "leveldb-app-sim", "Simulation", simcli.FlagVerboseValue, true)
 	if skip {
 		t.Skip("skipping application simulation")
 	}
@@ -59,8 +59,8 @@ func TestFullAppSimulation(t *testing.T) {
 	}()
 
 	appOptions := make(simtestutil.AppOptionsMap, 0)
-	appOptions[flags.FlagHome] = DefaultNodeHome
-	appOptions[server.FlagInvCheckPeriod] = simcli.FlagPeriodValue
+	appOptions[flags.FlagHome] = dir
+	appOptions[server.FlagInvCheckPeriod] = uint(1)
 
 	app := NewApp(logger, db, nil, true, appOptions, []wasmkeeper.Option{}, baseapp.SetChainID(SimAppChainID))
 	require.Equal(t, "tokenfactory", app.Name())
@@ -92,7 +92,7 @@ func TestAppImportExport(t *testing.T) {
 	config := simcli.NewConfigFromFlags()
 	config.ChainID = SimAppChainID
 
-	db, dir, logger, skip, err := simtestutil.SetupSimulation(config, "leveldb-app-sim", "Simulation", simcli.FlagVerboseValue, simcli.FlagEnabledValue)
+	db, dir, logger, skip, err := simtestutil.SetupSimulation(config, "leveldb-app-sim", "Simulation", simcli.FlagVerboseValue, true)
 	if skip {
 		t.Skip("skipping application import/export simulation")
 	}
@@ -104,8 +104,8 @@ func TestAppImportExport(t *testing.T) {
 	}()
 
 	appOptions := make(simtestutil.AppOptionsMap, 0)
-	appOptions[flags.FlagHome] = DefaultNodeHome
-	appOptions[server.FlagInvCheckPeriod] = simcli.FlagPeriodValue
+	appOptions[flags.FlagHome] = dir
+	appOptions[server.FlagInvCheckPeriod] = uint(1)
 
 	app := NewApp(logger, db, nil, true, appOptions, []wasmkeeper.Option{}, baseapp.SetChainID(SimAppChainID))
 	require.Equal(t, "tokenfactory", app.Name())
@@ -139,7 +139,7 @@ func TestAppImportExport(t *testing.T) {
 
 	fmt.Printf("importing genesis...\n")
 
-	newDB, newDir, _, _, err := simtestutil.SetupSimulation(config, "leveldb-app-sim-2", "Simulation-2", simcli.FlagVerboseValue, simcli.FlagEnabledValue)
+	newDB, newDir, _, _, err := simtestutil.SetupSimulation(config, "leveldb-app-sim-2", "Simulation-2", simcli.FlagVerboseValue, true)
 	require.NoError(t, err, "simulation setup failed")
 
 	defer func() {
@@ -147,7 +147,12 @@ func TestAppImportExport(t *testing.T) {
 		require.NoError(t, os.RemoveAll(newDir))
 	}()
 
-	newApp := NewApp(log.NewNopLogger(), newDB, nil, true, appOptions, []wasmkeeper.Option{}, baseapp.SetChainID(SimAppChainID))
+	// Create separate app options for the new app with different home directory
+	newAppOptions := make(simtestutil.AppOptionsMap, 0)
+	newAppOptions[flags.FlagHome] = newDir
+	newAppOptions[server.FlagInvCheckPeriod] = uint(1)
+
+	newApp := NewApp(log.NewNopLogger(), newDB, nil, true, newAppOptions, []wasmkeeper.Option{}, baseapp.SetChainID(SimAppChainID))
 	require.Equal(t, "tokenfactory", newApp.Name())
 
 	var genesisState GenesisState
@@ -210,7 +215,7 @@ func TestAppSimulationAfterImport(t *testing.T) {
 	config := simcli.NewConfigFromFlags()
 	config.ChainID = SimAppChainID
 
-	db, dir, logger, skip, err := simtestutil.SetupSimulation(config, "leveldb-app-sim", "Simulation", simcli.FlagVerboseValue, simcli.FlagEnabledValue)
+	db, dir, logger, skip, err := simtestutil.SetupSimulation(config, "leveldb-app-sim", "Simulation", simcli.FlagVerboseValue, true)
 	if skip {
 		t.Skip("skipping application simulation after import")
 	}
@@ -222,8 +227,8 @@ func TestAppSimulationAfterImport(t *testing.T) {
 	}()
 
 	appOptions := make(simtestutil.AppOptionsMap, 0)
-	appOptions[flags.FlagHome] = DefaultNodeHome
-	appOptions[server.FlagInvCheckPeriod] = simcli.FlagPeriodValue
+	appOptions[flags.FlagHome] = dir
+	appOptions[server.FlagInvCheckPeriod] = uint(1)
 
 	app := NewApp(logger, db, nil, true, appOptions, []wasmkeeper.Option{}, baseapp.SetChainID(SimAppChainID))
 	require.Equal(t, "tokenfactory", app.Name())
@@ -262,7 +267,7 @@ func TestAppSimulationAfterImport(t *testing.T) {
 
 	fmt.Printf("importing genesis...\n")
 
-	newDB, newDir, _, _, err := simtestutil.SetupSimulation(config, "leveldb-app-sim-2", "Simulation-2", simcli.FlagVerboseValue, simcli.FlagEnabledValue)
+	newDB, newDir, _, _, err := simtestutil.SetupSimulation(config, "leveldb-app-sim-2", "Simulation-2", simcli.FlagVerboseValue, true)
 	require.NoError(t, err, "simulation setup failed")
 
 	defer func() {
@@ -270,7 +275,12 @@ func TestAppSimulationAfterImport(t *testing.T) {
 		require.NoError(t, os.RemoveAll(newDir))
 	}()
 
-	newApp := NewApp(log.NewNopLogger(), newDB, nil, true, appOptions, []wasmkeeper.Option{}, baseapp.SetChainID(SimAppChainID))
+	// Create separate app options for the new app with different home directory
+	newAppOptions := make(simtestutil.AppOptionsMap, 0)
+	newAppOptions[flags.FlagHome] = newDir
+	newAppOptions[server.FlagInvCheckPeriod] = uint(1)
+
+	newApp := NewApp(log.NewNopLogger(), newDB, nil, true, newAppOptions, []wasmkeeper.Option{}, baseapp.SetChainID(SimAppChainID))
 	require.Equal(t, "tokenfactory", newApp.Name())
 
 	_, err = newApp.InitChain(&abci.RequestInitChain{
@@ -294,15 +304,10 @@ func TestAppSimulationAfterImport(t *testing.T) {
 }
 
 func TestAppStateDeterminism(t *testing.T) {
-	if !simcli.FlagEnabledValue {
-		t.Skip("skipping application simulation")
-	}
 
 	config := simcli.NewConfigFromFlags()
 	config.InitialBlockHeight = 1
 	config.ExportParamsPath = ""
-	config.OnOperation = false
-	config.AllInvariants = false
 	config.ChainID = SimAppChainID
 
 	numSeeds := 3
@@ -325,7 +330,7 @@ func TestAppStateDeterminism(t *testing.T) {
 		}
 	}
 	appOptions.SetDefault(flags.FlagHome, DefaultNodeHome)
-	appOptions.SetDefault(server.FlagInvCheckPeriod, simcli.FlagPeriodValue)
+	appOptions.SetDefault(server.FlagInvCheckPeriod, uint(1))
 	if simcli.FlagVerboseValue {
 		appOptions.SetDefault(flags.FlagLogLevel, "debug")
 	}
@@ -345,8 +350,26 @@ func TestAppStateDeterminism(t *testing.T) {
 				logger = log.NewNopLogger()
 			}
 
+			// Create a new directory for this app instance to avoid CosmWasm lock conflicts
+			newDir := t.TempDir()
+			newAppOptions := viper.New()
+			if FlagEnableStreamingValue {
+				m := make(map[string]interface{})
+				m["streaming.abci.keys"] = []string{"*"}
+				m["streaming.abci.plugin"] = "abci_v1"
+				m["streaming.abci.stop-node-on-err"] = true
+				for key, value := range m {
+					newAppOptions.SetDefault(key, value)
+				}
+			}
+			newAppOptions.SetDefault(flags.FlagHome, newDir)
+			newAppOptions.SetDefault(server.FlagInvCheckPeriod, uint(1))
+			if simcli.FlagVerboseValue {
+				newAppOptions.SetDefault(flags.FlagLogLevel, "debug")
+			}
+
 			db := dbm.NewMemDB()
-			app := NewApp(logger, db, nil, true, appOptions, []wasmkeeper.Option{}, baseapp.SetChainID(SimAppChainID))
+			app := NewApp(logger, db, nil, true, newAppOptions, []wasmkeeper.Option{}, baseapp.SetChainID(SimAppChainID))
 
 			fmt.Printf(
 				"running non-determinism simulation; seed %d: %d/%d, attempt: %d/%d\n",
