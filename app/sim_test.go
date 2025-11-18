@@ -59,7 +59,7 @@ func TestFullAppSimulation(t *testing.T) {
 	}()
 
 	appOptions := make(simtestutil.AppOptionsMap, 0)
-	appOptions[flags.FlagHome] = DefaultNodeHome
+	appOptions[flags.FlagHome] = dir
 	appOptions[server.FlagInvCheckPeriod] = uint(1)
 
 	app := NewApp(logger, db, nil, true, appOptions, []wasmkeeper.Option{}, baseapp.SetChainID(SimAppChainID))
@@ -104,7 +104,7 @@ func TestAppImportExport(t *testing.T) {
 	}()
 
 	appOptions := make(simtestutil.AppOptionsMap, 0)
-	appOptions[flags.FlagHome] = DefaultNodeHome
+	appOptions[flags.FlagHome] = dir
 	appOptions[server.FlagInvCheckPeriod] = uint(1)
 
 	app := NewApp(logger, db, nil, true, appOptions, []wasmkeeper.Option{}, baseapp.SetChainID(SimAppChainID))
@@ -227,7 +227,7 @@ func TestAppSimulationAfterImport(t *testing.T) {
 	}()
 
 	appOptions := make(simtestutil.AppOptionsMap, 0)
-	appOptions[flags.FlagHome] = DefaultNodeHome
+	appOptions[flags.FlagHome] = dir
 	appOptions[server.FlagInvCheckPeriod] = uint(1)
 
 	app := NewApp(logger, db, nil, true, appOptions, []wasmkeeper.Option{}, baseapp.SetChainID(SimAppChainID))
