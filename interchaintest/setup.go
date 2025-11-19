@@ -29,7 +29,6 @@ var (
 		cosmos.NewGenesisKV("app_state.tokenfactory.params.denom_creation_fee", nil),
 		cosmos.NewGenesisKV("app_state.tokenfactory.params.denom_creation_gas_consume", "1"),
 		cosmos.NewGenesisKV("consensus.params.abci.vote_extensions_enable_height", "1"),
-		// inflation of 0 allows for SudoMints. This is enabled by default
 		cosmos.NewGenesisKV("app_state.mint.minter.inflation", sdkmath.LegacyZeroDec()),
 		cosmos.NewGenesisKV("app_state.mint.params.inflation_rate_change", sdkmath.LegacyZeroDec()), // else it will increase slowly
 		cosmos.NewGenesisKV("app_state.mint.params.inflation_min", sdkmath.LegacyZeroDec()),

@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/strangelove-ventures/tokenfactory/x/tokenfactory/types"
@@ -22,7 +21,6 @@ func (suite *KeeperTestSuite) TestMintDenomMsg() {
 		amount                int64
 		mintDenom             string
 		admin                 string
-		sudoer                string
 		expectedMessageEvents int // the valid case should emit >= 1
 	}{
 		{
@@ -38,31 +36,10 @@ func (suite *KeeperTestSuite) TestMintDenomMsg() {
 			admin:                 suite.TestAccs[0].String(),
 			expectedMessageEvents: 1,
 		},
-		// Sudo Mints
-		{
-			desc:                  "successful sudo mint executed by an allowed sudoer",
-			amount:                10,
-			mintDenom:             "unique",
-			admin:                 suite.TestAccs[0].String(),
-			sudoer:                suite.TestAccs[0].String(), // this user can sudo mint
-			expectedMessageEvents: 1,
-		},
-		{
-			desc:      "invalid sudo mint from a non admin",
-			amount:    10,
-			mintDenom: "unique",
-			admin:     suite.TestAccs[0].String(),
-			sudoer:    "nope",
-		},
 	} {
 		suite.Run(fmt.Sprintf("Case %s", tc.desc), func() {
 			ctx := suite.Ctx.WithEventManager(sdk.NewEventManager())
 			suite.Require().Equal(0, len(ctx.EventManager().Events()))
-
-			// Override the default IsSudoAdminFunc for testing
-			suite.App.TokenFactoryKeeper.IsSudoAdminFunc = func(_ context.Context, addr string) bool {
-				return tc.sudoer == addr
-			}
 
 			suite.OverrideMsgServer(suite.App.TokenFactoryKeeper)
 

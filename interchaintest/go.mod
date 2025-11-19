@@ -12,6 +12,7 @@ replace (
 
 require (
 	cosmossdk.io/math v1.5.3
+	github.com/CosmWasm/wasmd v0.60.2
 	github.com/cosmos/cosmos-sdk v0.53.4
 	github.com/cosmos/interchaintest/v10 v10.0.1
 	github.com/strangelove-ventures/tokenfactory v0.0.0-00000000000000-000000000000
@@ -44,8 +45,7 @@ require (
 	github.com/99designs/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/99designs/keyring v1.2.2 // indirect
 	github.com/BurntSushi/toml v1.5.0 // indirect
-	github.com/CosmWasm/wasmd v0.60.0 // indirect
-	github.com/CosmWasm/wasmvm/v2 v2.2.1 // indirect
+	github.com/CosmWasm/wasmvm/v2 v2.2.4 // indirect
 	github.com/DataDog/datadog-go v4.8.3+incompatible // indirect
 	github.com/DataDog/zstd v1.5.7 // indirect
 	github.com/GoogleCloudPlatform/opentelemetry-operations-go/detectors/gcp v1.29.0 // indirect

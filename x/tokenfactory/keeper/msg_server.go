@@ -52,32 +52,27 @@ func (server msgServer) Mint(goCtx context.Context, msg *types.MsgMint) (*types.
 	var err error
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	sudoEnabled := types.IsCapabilityEnabled(server.Keeper.enabledCapabilities, types.EnableSudoMint)
-	senderIsSudoAble := server.IsSudoAdminFunc(goCtx, msg.Sender)
-	isSudo := sudoEnabled && senderIsSudoAble
+	// Verify denom exists
+	_, denomExists := server.bankKeeper.GetDenomMetaData(ctx, msg.Amount.Denom)
+	if !denomExists {
+		return nil, types.ErrDenomDoesNotExist.Wrapf("denom: %s", msg.Amount.Denom)
+	}
 
-	if !isSudo {
-		// Standard user verification if they are not a Sudo admin
-		_, denomExists := server.bankKeeper.GetDenomMetaData(ctx, msg.Amount.Denom)
-		if !denomExists {
-			return nil, types.ErrDenomDoesNotExist.Wrapf("denom: %s", msg.Amount.Denom)
-		}
+	// Verify sender is the denom admin
+	authorityMetadata, err := server.Keeper.GetAuthorityMetadata(ctx, msg.Amount.GetDenom())
+	if err != nil {
+		return nil, err
+	}
 
-		authorityMetadata, err := server.Keeper.GetAuthorityMetadata(ctx, msg.Amount.GetDenom())
-		if err != nil {
-			return nil, err
-		}
-
-		if msg.Sender != authorityMetadata.GetAdmin() {
-			return nil, types.ErrUnauthorized
-		}
+	if msg.Sender != authorityMetadata.GetAdmin() {
+		return nil, types.ErrUnauthorized
 	}
 
 	if msg.MintToAddress == "" {
 		msg.MintToAddress = msg.Sender
 	}
 
-	err = server.Keeper.mintTo(ctx, msg.Amount, msg.MintToAddress, isSudo)
+	err = server.Keeper.mintTo(ctx, msg.Amount, msg.MintToAddress)
 	if err != nil {
 		return nil, err
 	}
