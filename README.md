@@ -4,8 +4,7 @@
 
 </br>
 
-![GitHub commit check runs](https://img.shields.io/github/check-runs/strangelove-ventures/tokenfactory/main)
-![Codecov](https://img.shields.io/codecov/c/github/strangelove-ventures/tokenfactory)
+![GitHub commit check runs](https://img.shields.io/github/check-runs/cosmos/tokenfactory/main)
 
 The `tokenfactory` module allows any account to create a new token with the name `factory/{creator address}/{subdenom}`. Because tokens are namespaced by creator address, this allows token minting to be permissionless, due to not needing to resolve name collisions. A single account can create multiple denoms, by providing a unique subdenom for each created denom. Once a denom is created, the original creator is given "admin" privileges over the asset. This allows them to:
 
@@ -14,12 +13,14 @@ The `tokenfactory` module allows any account to create a new token with the name
 - Create a transfer of their denom between any two accounts
 - Change the admin. The `ChangeAdmin` functionality allows changing the master admin account, or even setting it to "", meaning no account has admin privileges of the asset.
 
-## Supported Versions
+## Version Tagging
 
-| Tokenfactory | Cosmos-SDK | wasmvm | branch
-| ------------ | ---------- | ------ | ------ |
-| v0.50.X-wasmvm2 | v0.50.X | v2 | [main](https://github.com/strangelove-ventures/tokenfactory/tree/main) |
-| v0.50.X       | v0.50.X   | v1 | [main_wasmvm1](https://github.com/strangelove-ventures/tokenfactory/tree/main_wasmvm1) |
+
+| Tag                                                                            | Cosmos SDK | wasmvm | Notes                                                                                                     |
+| ------------------------------------------------------------------------------ | ---------- | ------ | --------------------------------------------------------------------------------------------------------- |
+| [v0.53.2](https://github.com/cosmos/tokenfactory/tree/v0.53.2)                 | v0.53      | v2     | Removes sudo mint feature                                                                                 |
+| [v0.53.1](https://github.com/cosmos/tokenfactory/tree/v0.53.1)                 | v0.53      | v2     |                                                                                                           |
+| [v0.50.7-wasmvm2](https://github.com/cosmos/tokenfactory/tree/v0.50.7-wasmvm2) | v0.50      | v2     | Matches [upstream tag](https://github.com/strangelove-ventures/tokenfactory/releases/tag/v0.50.7-wasmvm2) |
 
 ## References
 
