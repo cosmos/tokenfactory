@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/strangelove-ventures/tokenfactory/app"
-	appparams "github.com/strangelove-ventures/tokenfactory/app/params"
+	"github.com/cosmos/tokenfactory/app"
+	appparams "github.com/cosmos/tokenfactory/app/params"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/cometbft/cometbft/crypto/ed25519"

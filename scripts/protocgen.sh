@@ -12,7 +12,7 @@ cd ..
 
 
 # move proto files to the right places
-cp -r ./github.com/strangelove-ventures/tokenfactory/x/* x/
+cp -r ./github.com/cosmos/tokenfactory/x/* x/
 rm -rf ./github.com
 
 # replace incorrect namespace

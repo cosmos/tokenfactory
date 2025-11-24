@@ -16,11 +16,11 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
-	"github.com/strangelove-ventures/tokenfactory/x/tokenfactory/client/cli"
-	"github.com/strangelove-ventures/tokenfactory/x/tokenfactory/exported"
-	"github.com/strangelove-ventures/tokenfactory/x/tokenfactory/keeper"
-	simulation "github.com/strangelove-ventures/tokenfactory/x/tokenfactory/simulation"
-	"github.com/strangelove-ventures/tokenfactory/x/tokenfactory/types"
+	"github.com/cosmos/tokenfactory/x/tokenfactory/client/cli"
+	"github.com/cosmos/tokenfactory/x/tokenfactory/exported"
+	"github.com/cosmos/tokenfactory/x/tokenfactory/keeper"
+	simulation "github.com/cosmos/tokenfactory/x/tokenfactory/simulation"
+	"github.com/cosmos/tokenfactory/x/tokenfactory/types"
 
 	abci "github.com/cometbft/cometbft/abci/types"
 

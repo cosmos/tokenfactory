@@ -1,4 +1,4 @@
-module github.com/strangelove-ventures/tokenfactory
+module github.com/cosmos/tokenfactory
 
 go 1.23.8
 

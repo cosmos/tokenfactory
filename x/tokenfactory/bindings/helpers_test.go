@@ -6,7 +6,7 @@ import (
 
 	"github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	"github.com/strangelove-ventures/tokenfactory/app"
+	"github.com/cosmos/tokenfactory/app"
 	"github.com/stretchr/testify/require"
 
 	"github.com/cometbft/cometbft/crypto"

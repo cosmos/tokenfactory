@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/strangelove-ventures/tokenfactory/app"
-	"github.com/strangelove-ventures/tokenfactory/cmd/tokend/cmd"
+	"github.com/cosmos/tokenfactory/app"
+	"github.com/cosmos/tokenfactory/cmd/tokend/cmd"
 
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 )

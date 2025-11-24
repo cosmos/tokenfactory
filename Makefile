@@ -46,7 +46,7 @@ empty = $(whitespace) $(whitespace)
 comma := ,
 build_tags_comma_sep := $(subst $(empty),$(comma),$(build_tags))
 
-# -X github.com/strangelove-ventures/tokenfactory/app.Bech32Prefix=tokenfactory
+# -X github.com/cosmos/tokenfactory/app.Bech32Prefix=tokenfactory
 ldflags = -X github.com/cosmos/cosmos-sdk/version.Name=tokenfactory \
 		  -X github.com/cosmos/cosmos-sdk/version.AppName=tokend \
 		  -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
@@ -129,7 +129,7 @@ test:
 COV_ROOT="/tmp/tokenfactory-coverage"
 COV_UNIT_E2E="${COV_ROOT}/unit-e2e"
 COV_SIMULATION="${COV_ROOT}/simulation"
-COV_PKG="github.com/strangelove-ventures/tokenfactory/..."
+COV_PKG="github.com/cosmos/tokenfactory/..."
 COV_SIM_CMD=${COV_SIMULATION}/simulation.test
 COV_SIM_COMMON=-Enabled=True -NumBlocks=100 -Commit=true -Period=5 -Verbose=false -test.v -test.gocoverdir=${COV_SIMULATION}
 

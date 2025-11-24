@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/strangelove-ventures/tokenfactory/app"
+	"github.com/cosmos/tokenfactory/app"
 
 	cmtcfg "github.com/cometbft/cometbft/config"
 

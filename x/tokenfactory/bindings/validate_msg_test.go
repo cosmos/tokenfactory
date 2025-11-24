@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	wasmbinding "github.com/strangelove-ventures/tokenfactory/x/tokenfactory/bindings"
-	bindings "github.com/strangelove-ventures/tokenfactory/x/tokenfactory/bindings/types"
-	"github.com/strangelove-ventures/tokenfactory/x/tokenfactory/types"
+	wasmbinding "github.com/cosmos/tokenfactory/x/tokenfactory/bindings"
+	bindings "github.com/cosmos/tokenfactory/x/tokenfactory/bindings/types"
+	"github.com/cosmos/tokenfactory/x/tokenfactory/types"
 	"github.com/stretchr/testify/require"
 
 	sdkmath "cosmossdk.io/math"
