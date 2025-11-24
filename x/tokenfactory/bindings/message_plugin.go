@@ -5,9 +5,9 @@ import (
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
-	bindingstypes "github.com/strangelove-ventures/tokenfactory/x/tokenfactory/bindings/types"
-	tokenfactorykeeper "github.com/strangelove-ventures/tokenfactory/x/tokenfactory/keeper"
-	tokenfactorytypes "github.com/strangelove-ventures/tokenfactory/x/tokenfactory/types"
+	bindingstypes "github.com/cosmos/tokenfactory/x/tokenfactory/bindings/types"
+	tokenfactorykeeper "github.com/cosmos/tokenfactory/x/tokenfactory/keeper"
+	tokenfactorytypes "github.com/cosmos/tokenfactory/x/tokenfactory/types"
 
 	errorsmod "cosmossdk.io/errors"
 

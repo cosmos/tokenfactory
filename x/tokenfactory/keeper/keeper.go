@@ -3,7 +3,7 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/strangelove-ventures/tokenfactory/x/tokenfactory/types"
+	"github.com/cosmos/tokenfactory/x/tokenfactory/types"
 
 	"cosmossdk.io/log"
 	"cosmossdk.io/store/prefix"

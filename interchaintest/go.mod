@@ -1,4 +1,4 @@
-module github.com/strangelove-ventures/tokenfactory/interchaintest
+module github.com/cosmos/tokenfactory/interchaintest
 
 go 1.23.8
 
@@ -6,8 +6,8 @@ replace (
 	// use cosmos compatible ChainSafe/go-schnorrkel
 	github.com/ChainSafe/go-schnorrkel => github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d
 	github.com/ChainSafe/go-schnorrkel/1 => github.com/ChainSafe/go-schnorrkel v1.0.0
+	github.com/cosmos/tokenfactory => ../
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
-	github.com/strangelove-ventures/tokenfactory => ../
 )
 
 require (
@@ -15,7 +15,7 @@ require (
 	github.com/CosmWasm/wasmd v0.60.2
 	github.com/cosmos/cosmos-sdk v0.53.4
 	github.com/cosmos/interchaintest/v10 v10.0.1
-	github.com/strangelove-ventures/tokenfactory v0.0.0-00000000000000-000000000000
+	github.com/cosmos/tokenfactory v0.0.0-00000000000000-000000000000
 	github.com/stretchr/testify v1.11.1
 	go.uber.org/zap v1.27.0
 )
