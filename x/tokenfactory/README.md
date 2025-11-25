@@ -19,101 +19,384 @@ created denom. Once a denom is created, the original creator is given
 
 ## Messages
 
-### CreateDenom
+### MsgCreateDenom
 
-Creates a denom of `factory/{creator address}/{subdenom}` given the denom creator
-address and the subdenom. Subdenoms can contain `[a-zA-Z0-9./]`.
+The `MsgCreateDenom` message allows an account to create a new denom. It requires a sender address and a sub denomination. The (sender_address, sub_denomination) tuple must be unique and cannot be re-used.
 
-```go
+The resulting denom created is defined as `factory/{creator address}/{subdenom}`. The denom's admin is originally set to be the creator, but this can be changed later.
+
+Subdenoms can contain `[a-zA-Z0-9./]`.
+
+```protobuf
 message MsgCreateDenom {
+  option (cosmos.msg.v1.signer) = "sender";
+  option (amino.name) = "osmosis/tokenfactory/create-denom";
+
   string sender = 1 [ (gogoproto.moretags) = "yaml:\"sender\"" ];
   string subdenom = 2 [ (gogoproto.moretags) = "yaml:\"subdenom\"" ];
 }
 ```
 
-**State Modifications:**
+This message returns a response containing the full string of the newly created denom:
 
-- Fund community pool with the denom creation fee from the creator address, set
-  in `Params`.
-- Set `DenomMetaData` via bank keeper.
-- Set `AuthorityMetadata` for the given denom to store the admin for the created
-  denom `factory/{creator address}/{subdenom}`. Admin is automatically set as the
-  Msg sender.
-- Add denom to the `CreatorPrefixStore`, where a state of denoms created per
-  creator is kept.
+```protobuf
+message MsgCreateDenomResponse {
+  string new_token_denom = 1
+      [ (gogoproto.moretags) = "yaml:\"new_token_denom\"" ];
+}
+```
 
-### Mint
+#### State Modifications
 
-Minting of a specific denom is only allowed for the current admin.
-Note, the current admin is defaulted to the creator of the denom.
+* Fund community pool with the denom creation fee from the creator address, set in `Params`.
+* Set `DenomMetaData` via bank keeper.
+* Set `AuthorityMetadata` for the given denom to store the admin for the created denom `factory/{creator address}/{subdenom}`. Admin is automatically set as the Msg sender.
+* Add denom to the `CreatorPrefixStore`, where a state of denoms created per creator is kept.
 
-```go
+This message is expected to fail if:
+
+* The sender address is invalid
+* The subdenom is invalid or exceeds 44 alphanumeric characters
+* The (sender, subdenom) tuple already exists
+
+When this message is processed the following actions occur:
+
+* A new denom is created with the format `factory/{sender}/{subdenom}`
+* The sender is set as the admin of the newly created denom
+* The denom creation fee is charged to the sender
+* The denom creation gas is consumed
+
+### MsgMint
+
+The `MsgMint` message allows an admin account to mint more of a token. The minted tokens can be sent to the sender's account or to a specified address.
+
+```protobuf
 message MsgMint {
+  option (cosmos.msg.v1.signer) = "sender";
+  option (amino.name) = "osmosis/tokenfactory/mint";
+
   string sender = 1 [ (gogoproto.moretags) = "yaml:\"sender\"" ];
   cosmos.base.v1beta1.Coin amount = 2 [
     (gogoproto.moretags) = "yaml:\"amount\"",
-    (gogoproto.nullable) = false
+    (gogoproto.nullable) = false,
+    (amino.encoding)     = "legacy_coin"
+  ];
+  string mintToAddress = 3 [
+    (gogoproto.moretags) = "yaml:\"mint_to_address\"",
+    (amino.dont_omitempty) = true
   ];
 }
 ```
 
-**State Modifications:**
+#### State Modifications
 
-- Safety check the following
-  - Check that the denom minting is created via `tokenfactory` module
-  - Check that the sender of the message is the admin of the denom
-- Mint designated amount of tokens for the denom via `bank` module
+* Safety check the following
+  * Check that the denom minting is created via `tokenfactory` module
+  * Check that the sender of the message is the admin of the denom
+* Mint designated amount of tokens for the denom via `bank` module
 
-### Burn
+This message is expected to fail if:
 
-Burning of a specific denom is only allowed for the current admin.
-Note, the current admin is defaulted to the creator of the denom.
+* The sender is not the admin of the denom
+* The sender address is invalid
+* The mint to address (if provided) is invalid
+* The amount is invalid or zero
 
-```go
+When this message is processed the following actions occur:
+
+* The specified amount of tokens is minted
+* The minted tokens are sent to the `mintToAddress` if specified, otherwise to the sender
+
+### MsgBurn
+
+The `MsgBurn` message allows an admin account to burn tokens. The burned tokens can be from the sender's account or from a specified address.
+
+```protobuf
 message MsgBurn {
+  option (cosmos.msg.v1.signer) = "sender";
+  option (amino.name) = "osmosis/tokenfactory/burn";
+
   string sender = 1 [ (gogoproto.moretags) = "yaml:\"sender\"" ];
   cosmos.base.v1beta1.Coin amount = 2 [
     (gogoproto.moretags) = "yaml:\"amount\"",
-    (gogoproto.nullable) = false
+    (gogoproto.nullable) = false,
+    (amino.encoding)     = "legacy_coin"
+  ];
+  string burnFromAddress = 3 [
+    (gogoproto.moretags) = "yaml:\"burn_from_address\"",
+    (amino.dont_omitempty) = true
   ];
 }
 ```
 
-**State Modifications:**
+#### State Modifications
 
-- Safety check the following
-  - Check that the denom minting is created via `tokenfactory` module
-  - Check that the sender of the message is the admin of the denom
-- Burn designated amount of tokens for the denom via `bank` module
+* Safety check the following
+  * Check that the denom minting is created via `tokenfactory` module
+  * Check that the sender of the message is the admin of the denom
+* Burn designated amount of tokens for the denom via `bank` module
 
-### ChangeAdmin
+This message is expected to fail if:
 
-Change the admin of a denom. Note, this is only allowed to be called by the current admin of the denom.
+* The sender is not the admin of the denom
+* The sender address is invalid
+* The burn from address (if provided) is invalid
+* The amount is invalid or zero
+* The account being burned from has insufficient balance
 
-```go
+When this message is processed the following actions occur:
+
+* The specified amount of tokens is burned from the `burnFromAddress` if specified, otherwise from the sender
+
+
+### MsgChangeAdmin
+
+The `MsgChangeAdmin` message allows an admin account to reassign adminship of a denom to a new account.
+
+```protobuf
 message MsgChangeAdmin {
+  option (cosmos.msg.v1.signer) = "sender";
+  option (amino.name) = "osmosis/tokenfactory/change-admin";
+
   string sender = 1 [ (gogoproto.moretags) = "yaml:\"sender\"" ];
   string denom = 2 [ (gogoproto.moretags) = "yaml:\"denom\"" ];
-  string newAdmin = 3 [ (gogoproto.moretags) = "yaml:\"new_admin\"" ];
+  string new_admin = 3 [ (gogoproto.moretags) = "yaml:\"new_admin\"" ];
 }
 ```
 
-### SetDenomMetadata
+#### State Modifications
 
-Setting of metadata for a specific denom is only allowed for the admin of the denom.
-It allows the overwriting of the denom metadata in the bank module.
+* Check that sender of the message is the admin of denom
+* Modify `AuthorityMetadata` state entry to change the admin of the denom
 
-```go
-message MsgChangeAdmin {
+This message is expected to fail if:
+
+* The sender is not the current admin of the denom
+* The sender address is invalid
+* The new admin address is invalid
+* The denom is invalid or does not exist
+
+When this message is processed the following actions occur:
+
+* The admin of the specified denom is changed to the `new_admin` address
+* If the new admin is set to an empty string, the denom becomes a fixed supply token with no further mint and burn operations allowed
+
+### MsgSetDenomMetadata
+
+The `MsgSetDenomMetadata` message allows an admin account to set the denom's bank metadata.
+
+```protobuf
+message MsgSetDenomMetadata {
+  option (cosmos.msg.v1.signer) = "sender";
+  option (amino.name) = "osmosis/tokenfactory/set-denom-metadata";
+
   string sender = 1 [ (gogoproto.moretags) = "yaml:\"sender\"" ];
-  cosmos.bank.v1beta1.Metadata metadata = 2 [ (gogoproto.moretags) = "yaml:\"metadata\"", (gogoproto.nullable)   = false ];
+  cosmos.bank.v1beta1.Metadata metadata = 2 [
+    (gogoproto.moretags) = "yaml:\"metadata\"",
+    (gogoproto.nullable) = false
+  ];
 }
 ```
 
-**State Modifications:**
+This message is expected to fail if:
 
-- Check that sender of the message is the admin of denom
-- Modify `AuthorityMetadata` state entry to change the admin of the denom
+* The sender is not the admin of the denom
+* The sender address is invalid
+* The metadata is invalid
+* The base denom in the metadata is invalid
+
+When this message is processed the following actions occur:
+
+* The bank metadata for the specified denom is set or updated
+
+### MsgForceTransfer
+
+The `MsgForceTransfer` message allows an admin account to transfer tokens from one account to another.
+
+```protobuf
+// MsgForceTransfer allows an admin to transfer tokens from one account to another
+message MsgForceTransfer {
+  option (cosmos.msg.v1.signer) = "sender";
+  option (amino.name) = "osmosis/tokenfactory/force-transfer";
+
+  string sender = 1 [ (gogoproto.moretags) = "yaml:\"sender\"" ];
+  cosmos.base.v1beta1.Coin amount = 2 [
+    (gogoproto.moretags) = "yaml:\"amount\"",
+    (gogoproto.nullable) = false,
+    (amino.encoding)     = "legacy_coin"
+  ];
+  string transferFromAddress = 3
+      [ (gogoproto.moretags) = "yaml:\"transfer_from_address\"" ];
+  string transferToAddress = 4
+      [ (gogoproto.moretags) = "yaml:\"transfer_to_address\"" ];
+}
+```
+
+This message is expected to fail if:
+
+* The sender is not the admin of the denom
+* The sender address is invalid
+* The transfer from address is invalid
+* The transfer to address is invalid
+* The amount is invalid
+* The account being transferred from has insufficient balance
+
+When this message is processed the following actions occur:
+
+* The specified amount of tokens is transferred from `transferFromAddress` to `transferToAddress`
+
+### MsgUpdateParams
+
+The `MsgUpdateParams` message updates the tokenfactory module parameters.
+The params are updated through a governance proposal where the signer is the gov module account address.
+
+```protobuf
+// MsgUpdateParams is the Msg/UpdateParams request type.
+message MsgUpdateParams {
+  option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name) = "osmosis/tokenfactory/update-params";
+
+  // authority is the address of the governance account.
+  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // params defines the x/tokenfactory parameters to update.
+  //
+  // NOTE: All parameters must be supplied.
+  Params params = 2 [(gogoproto.nullable) = false];
+}
+```
+
+The message handling can fail if:
+
+* Signer is not the authority defined in the tokenfactory keeper (usually the gov module account)
+
+## State
+
+### Params
+
+The tokenfactory module stores its params in state with the prefix of `0x00`,
+they can be updated via governance.
+
+* Params: `0x00 | ProtocolBuffer(Params)`
+
+```protobuf
+message Params {
+  repeated cosmos.base.v1beta1.Coin denom_creation_fee = 1 [
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
+    (gogoproto.moretags) = "yaml:\"denom_creation_fee\"",
+    (gogoproto.nullable) = false
+  ];
+
+  uint64 denom_creation_gas_consume = 2 [
+    (gogoproto.moretags) = "yaml:\"denom_creation_gas_consume\"",
+    (gogoproto.nullable) = true
+  ];
+}
+```
+
+### DenomAuthorityMetadata
+
+DenomAuthorityMetadata stores the admin address for each denom created via the tokenfactory module. The admin has permissions to mint, burn, force transfer, and change the admin of the denom.
+
+* DenomAuthorityMetadata: `denoms|{denom}|authoritymetadata -> ProtocolBuffer(DenomAuthorityMetadata)`
+
+```protobuf
+message DenomAuthorityMetadata {
+  option (gogoproto.equal) = true;
+  // Can be empty for no admin, or a valid address
+  string admin = 1 [ (gogoproto.moretags) = "yaml:\"admin\"" ];
+}
+```
+
+### Denoms by Creator
+
+The tokenfactory module maintains an index of all denoms created by each creator address. This allows for efficient querying of all denoms created by a specific account.
+
+* Creator to Denoms: `creator|{creatorAddress}|{denom} -> []byte{}`
+
+This index is used to:
+- Query all denoms created by a specific address
+- Validate denom ownership and permissions
+- Support efficient lookups in queries and transactions
+
+
+## Events
+
+The tokenfactory module emits the following events:
+
+### Msg's
+
+### MsgCreateDenom
+
+| Type         | Attribute Key   | Attribute Value  |
+| ------------ | --------------- | ---------------- |
+| create_denom | creator         | {creatorAddress} |
+| create_denom | new_token_denom | {newTokenDenom}  |
+| message      | module          | tokenfactory     |
+| message      | action          | create_denom     |
+| message      | sender          | {senderAddress}  |
+
+### MsgMint
+
+| Type    | Attribute Key   | Attribute Value |
+| ------- | --------------- | --------------- |
+| tf_mint | mint_to_address | {mintToAddress} |
+| tf_mint | amount          | {amount}        |
+| message | module          | tokenfactory    |
+| message | action          | tf_mint         |
+| message | sender          | {senderAddress} |
+
+### MsgBurn
+
+| Type    | Attribute Key     | Attribute Value   |
+| ------- | ----------------- | ----------------- |
+| tf_burn | burn_from_address | {burnFromAddress} |
+| tf_burn | amount            | {amount}          |
+| message | module            | tokenfactory      |
+| message | action            | tf_burn           |
+| message | sender            | {senderAddress}   |
+
+### MsgForceTransfer
+
+| Type           | Attribute Key         | Attribute Value       |
+| -------------- | --------------------- | --------------------- |
+| force_transfer | transfer_from_address | {transferFromAddress} |
+| force_transfer | transfer_to_address   | {transferToAddress}   |
+| force_transfer | amount                | {amount}              |
+| message        | module                | tokenfactory          |
+| message        | action                | force_transfer        |
+| message        | sender                | {senderAddress}       |
+
+### MsgChangeAdmin
+
+| Type         | Attribute Key | Attribute Value   |
+| ------------ | ------------- | ----------------- |
+| change_admin | denom         | {denom}           |
+| change_admin | new_admin     | {newAdminAddress} |
+| message      | module        | tokenfactory      |
+| message      | action        | change_admin      |
+| message      | sender        | {senderAddress}   |
+
+### MsgSetDenomMetadata
+
+| Type               | Attribute Key  | Attribute Value    |
+| ------------------ | -------------- | ------------------ |
+| set_denom_metadata | denom          | {denom}            |
+| set_denom_metadata | denom_metadata | {metadata}         |
+| message            | module         | tokenfactory       |
+| message            | action         | set_denom_metadata |
+| message            | sender         | {senderAddress}    |
+
+
+## Parameters
+
+The liquid module contains the following parameters:
+
+| Key                     | Type           | Example                                  |
+| ----------------------- | -------------- | ---------------------------------------- |
+| DenomCreationFee        | SDK coin array | `[{"denom":"token","amount":"1000000"}]` |
+| DenomCreationGasConsume | string         | `"100000"`                               |
+
 
 ## Expectations from the chain
 
@@ -147,9 +430,7 @@ Considerations going into this:
 - longer subdenoms are very helpful for creating human readable denoms
 - chain addresses should prefer being smaller. The longest HRP in cosmos to date is 11 bytes. (`persistence`)
 
-For explicitness, its currently set to `len(longest_subdenom) = 44` and `len(longest_chain_addr_prefix) = 16`.
+For explicitness, the limits are set to `len(longest_subdenom) = 44` and `len(longest_chain_addr_prefix) = 16`.
 
-Please note, if the SDK increases the maximum length of a denom from 128 bytes,
+If the Cosmos SDK increases the maximum length of a denom from 128 bytes,
 these caps should increase.
-
-So please don't make code rely on these max lengths for parsing.
