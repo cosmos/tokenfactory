@@ -397,6 +397,368 @@ The liquid module contains the following parameters:
 | DenomCreationFee        | SDK coin array | `[{"denom":"token","amount":"1000000"}]` |
 | DenomCreationGasConsume | string         | `"100000"`                               |
 
+## Client
+
+### CLI
+
+A user can query and interact with the `tokenfactory` module using the CLI.
+
+#### Query
+
+The `query` commands allows users to query `tokenfactory` state.
+
+```bash
+tokend query tokenfactory --help
+```
+
+##### params
+
+The `params` command allows users to query the current module params.
+
+Usage:
+
+```bash
+tokend query tokenfactory params [flags]
+```
+
+Example:
+
+```bash
+tokend query tokenfactory params
+```
+
+Example Output:
+
+```bash
+params:
+  denom_creation_fee:
+  - amount: "10000000"
+    denom: utoken
+  denom_creation_gas_consume: "2000000"
+```
+
+##### denom-authority-metadata
+
+The `denom-authority-metadata` command allows users to query the authority metadata for a specific denom.
+
+Usage:
+
+```bash
+tokend query tokenfactory denom-authority-metadata [denom] [flags]
+```
+
+Example:
+
+```bash
+tokend query tokenfactory denom-authority-metadata factory/cosmos1...addr.../subdenom
+```
+
+Example Output:
+
+```bash
+authority_metadata:
+  admin: cosmos1...addr...
+```
+
+##### denoms-from-creator
+
+The `denoms-from-creator` command allows users to query all denoms created by a specific creator address.
+
+Usage:
+
+```bash
+tokend query tokenfactory denoms-from-creator [creator-address] [flags]
+```
+
+Example:
+
+```bash
+tokend query tokenfactory denoms-from-creator cosmos1...addr...
+```
+
+Example Output:
+
+```bash
+denoms:
+- factory/cosmos1...addr.../subdenom1
+- factory/cosmos1...addr.../subdenom2
+```
+
+##### denoms-from-admin
+
+The `denoms-from-admin` command allows users to query all denoms owned by a specific admin address.
+
+Usage:
+
+```bash
+tokend query tokenfactory denoms-from-admin [admin-address] [flags]
+```
+
+Example:
+
+```bash
+tokend query tokenfactory denoms-from-admin cosmos1...addr...
+```
+
+Example Output:
+
+```bash
+denoms:
+- factory/cosmos1...addr.../subdenom1
+- factory/cosmos1...addr.../subdenom2
+```
+
+#### Transactions
+
+The `tx` commands allows users to interact with the `tokenfactory` module.
+
+```bash
+tokend tx tokenfactory --help
+```
+
+##### create-denom
+
+The command `create-denom` allows users to create a new denom.
+
+Usage:
+
+```bash
+tokend tx tokenfactory create-denom [subdenom] [flags]
+```
+
+Example:
+
+```bash
+tokend tx tokenfactory create-denom mytoken --from=mykey
+```
+
+##### mint
+
+The command `mint` allows denom admins to mint tokens to their address.
+
+Usage:
+
+```bash
+tokend tx tokenfactory mint [amount] [flags]
+```
+
+Example:
+
+```bash
+tokend tx tokenfactory mint 1000factory/cosmos1...addr.../mytoken --from=mykey
+```
+
+##### mint-to
+
+The command `mint-to` allows denom admins to mint tokens to a specific address.
+
+Usage:
+
+```bash
+tokend tx tokenfactory mint-to [address] [amount] [flags]
+```
+
+Example:
+
+```bash
+tokend tx tokenfactory mint-to cosmos1...recipient... 1000factory/cosmos1...addr.../mytoken --from=mykey
+```
+
+##### burn
+
+The command `burn` allows denom admins to burn tokens from their address.
+
+Usage:
+
+```bash
+tokend tx tokenfactory burn [amount] [flags]
+```
+
+Example:
+
+```bash
+tokend tx tokenfactory burn 1000factory/cosmos1...addr.../mytoken --from=mykey
+```
+
+##### burn-from
+
+The command `burn-from` allows denom admins to burn tokens from a specific address.
+
+Usage:
+
+```bash
+tokend tx tokenfactory burn-from [address] [amount] [flags]
+```
+
+Example:
+
+```bash
+tokend tx tokenfactory burn-from cosmos1...addr... 1000factory/cosmos1...addr.../mytoken --from=mykey
+```
+
+##### force-transfer
+
+The command `force-transfer` allows denom admins to transfer tokens from one address to another.
+
+Usage:
+
+```bash
+tokend tx tokenfactory force-transfer [amount] [transfer-from-address] [transfer-to-address] [flags]
+```
+
+Example:
+
+```bash
+tokend tx tokenfactory force-transfer 1000factory/cosmos1...addr.../mytoken cosmos1...from... cosmos1...to... --from=mykey
+```
+
+##### change-admin
+
+The command `change-admin` allows denom admins to change the admin of a denom.
+
+* The admin address can be set to the gov module account.
+* The admin address can be set to an empty string to renounce admin control entirely.
+
+Usage:
+
+```bash
+tokend tx tokenfactory change-admin [denom] [new-admin-address] [flags]
+```
+
+Example:
+
+```bash
+tokend tx tokenfactory change-admin factory/cosmos1...addr.../mytoken cosmos1...newadmin... --from=mykey
+```
+
+##### modify-metadata
+
+The command `modify-metadata` allows denom admins to modify the metadata of a denom.
+
+Usage:
+
+```bash
+tokend tx tokenfactory modify-metadata [denom] [ticker-symbol] [description] [exponent] [flags]
+```
+
+Example:
+
+```bash
+tokend tx tokenfactory modify-metadata factory/cosmos1...addr.../mytoken MYTOKEN "My Token Description" 6 --from=mykey
+```
+
+### gRPC
+
+A user can query the `tokenfactory` module using gRPC endpoints.
+
+#### Params
+
+The `Params` endpoint queries the module parameters.
+
+```bash
+osmosis.tokenfactory.v1beta1.Query/Params
+```
+
+Example:
+
+```bash
+grpcurl -plaintext localhost:9090 osmosis.tokenfactory.v1beta1.Query/Params
+```
+
+Example Output:
+
+```bash
+{
+  "params": {
+    "denomCreationFee": [
+      {
+        "denom": "utoken",
+        "amount": "10000000"
+      }
+    ],
+    "denomCreationGasConsume": "2000000"
+  }
+}
+```
+
+#### DenomAuthorityMetadata
+
+The `DenomAuthorityMetadata` endpoint queries the authority metadata for a specific denom.
+
+```bash
+osmosis.tokenfactory.v1beta1.Query/DenomAuthorityMetadata
+```
+
+Example:
+
+```bash
+grpcurl -plaintext -d '{"denom": "factory/cosmos1...addr.../mytoken"}' \
+localhost:9090 osmosis.tokenfactory.v1beta1.Query/DenomAuthorityMetadata
+```
+
+Example Output:
+
+```bash
+{
+  "authorityMetadata": {
+    "admin": "cosmos1...addr..."
+  }
+}
+```
+
+#### DenomsFromCreator
+
+The `DenomsFromCreator` endpoint queries all denoms created by a specific creator address.
+
+```bash
+osmosis.tokenfactory.v1beta1.Query/DenomsFromCreator
+```
+
+Example:
+
+```bash
+grpcurl -plaintext -d '{"creator": "cosmos1...addr..."}' \
+localhost:9090 osmosis.tokenfactory.v1beta1.Query/DenomsFromCreator
+```
+
+Example Output:
+
+```bash
+{
+  "denoms": [
+    "factory/cosmos1...addr.../subdenom1",
+    "factory/cosmos1...addr.../subdenom2"
+  ]
+}
+```
+
+#### DenomsFromAdmin
+
+The `DenomsFromAdmin` endpoint queries all denoms owned by a specific admin address.
+
+```bash
+osmosis.tokenfactory.v1beta1.Query/DenomsFromAdmin
+```
+
+Example:
+
+```bash
+grpcurl -plaintext -d '{"admin": "cosmos1...addr..."}' \
+localhost:9090 osmosis.tokenfactory.v1beta1.Query/DenomsFromAdmin
+```
+
+Example Output:
+
+```bash
+{
+  "denoms": [
+    "factory/cosmos1...addr.../subdenom1",
+    "factory/cosmos1...addr.../subdenom2"
+  ]
+}
+```
+
+### REST
 
 ## Expectations from the chain
 
