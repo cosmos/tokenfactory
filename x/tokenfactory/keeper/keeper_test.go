@@ -24,6 +24,13 @@ type KeeperTestSuite struct {
 	defaultDenom string
 }
 
+// GetCommunityPoolBalance returns the current community pool balance
+func (suite *KeeperTestSuite) GetCommunityPoolBalance() sdk.DecCoins {
+	feePool, err := suite.App.DistrKeeper.FeePool.Get(suite.Ctx)
+	suite.Require().NoError(err)
+	return feePool.GetCommunityPool()
+}
+
 func TestKeeperTestSuite(t *testing.T) {
 	suite.Run(t, new(KeeperTestSuite))
 }

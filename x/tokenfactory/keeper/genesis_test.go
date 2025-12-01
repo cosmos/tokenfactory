@@ -9,6 +9,10 @@ import (
 
 func (suite *KeeperTestSuite) TestGenesis() {
 	genesisState := types.GenesisState{
+		Params: types.Params{
+			DenomCreationFee:        sdk.Coins{sdk.NewInt64Coin("stake", 10_000_000)},
+			DenomCreationGasConsume: 5_000_000,
+		},
 		FactoryDenoms: []types.GenesisDenom{
 			{
 				Denom: "factory/cosmos1t7egva48prqmzl59x5ngv4zx0dtrwewcdqdjr8/bitcoin",
@@ -42,7 +46,7 @@ func (suite *KeeperTestSuite) TestGenesis() {
 		}
 	}
 
-	if err := app.TokenFactoryKeeper.SetParams(suite.Ctx, types.Params{DenomCreationFee: sdk.Coins{sdk.NewInt64Coin("stake", 100)}}); err != nil {
+	if err := app.TokenFactoryKeeper.SetParams(suite.Ctx, genesisState.Params); err != nil {
 		panic(err)
 	}
 	app.TokenFactoryKeeper.InitGenesis(suite.Ctx, genesisState)
