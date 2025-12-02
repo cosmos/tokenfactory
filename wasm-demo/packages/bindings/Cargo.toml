@@ -16,6 +16,5 @@ cosmwasm-schema = { workspace = true }
 cosmwasm-std = { workspace = true }
 schemars = { workspace = true }
 serde = { workspace = true, default-features = false, features = ["derive"] }
-base64ct = { workspace = true }
 
 [dev-dependencies]

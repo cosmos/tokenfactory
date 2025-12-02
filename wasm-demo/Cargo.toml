@@ -30,11 +30,6 @@ cw-storage-plus = "1.2"
 anyhow = "1"
 thiserror = "1.0"
 cw2 = "1.1"
-# Pin base64ct to avoid edition2024 requirement
-base64ct = "=1.6.0"
-# Pin rayon to avoid rustc 1.80 requirement
-rayon = "=1.10.0"
-rayon-core = "=1.12.1"
 
 cw-multi-test = "0.20"
 token-bindings = { path = "./packages/bindings" }
