@@ -24,14 +24,23 @@ tokend tx wasm execute $CONTRACT_ADDR '{ "create_denom": { "subdenom": "mydenom"
 sleep 6
 tokend q tokenfactory denoms-from-admin $CONTRACT_ADDR
 
-echo "> Mint Tokens executing from USER1, minting to USER2"
+echo "> Mint tokens executing from USER1, minting to USER2"
 tokend tx wasm execute $CONTRACT_ADDR "{ \"mint_tokens\": {\"amount\": \"100\", \"denom\": \"factory/${CONTRACT_ADDR}/mydenom\", \"mint_to_address\": \"$USER2_ADDR\"}}" --from $USER1_ADDR --gas auto --gas-adjustment 2 --gas-prices 0.005utoken -y
 sleep 6
 tokend q bank total-supply-of factory/$CONTRACT_ADDR/mydenom
 tokend q bank balances $USER2_ADDR
 
-echo "> Burn Tokens executing from USER1, burning from USER2"
+echo "> Burn tokens executing from USER1, burning from USER2"
 tokend tx wasm execute $CONTRACT_ADDR "{ \"burn_tokens\": {\"amount\": \"50\", \"denom\": \"factory/${CONTRACT_ADDR}/mydenom\", \"burn_from_address\": \"$USER2_ADDR\"}}" --from $USER1_ADDR --gas auto --gas-adjustment 2 --gas-prices 0.005utoken -y
 sleep 6
 tokend q bank total-supply-of factory/$CONTRACT_ADDR/mydenom
 tokend q bank balances $USER2_ADDR
+
+echo "> Force transfer tokens executing from USER1, transferring from USER2 to USER1"
+tokend tx wasm execute $CONTRACT_ADDR "{ \"force_transfer\": {\"amount\": \"25\", \"denom\": \"factory/${CONTRACT_ADDR}/mydenom\", \"from_address\": \"$USER2_ADDR\", \"to_address\": \"$USER1_ADDR\"}}" --from $USER1_ADDR --gas auto --gas-adjustment 2 --gas-prices 0.005utoken -y
+sleep 6
+tokend q bank balances $USER2_ADDR
+tokend q bank balances $USER1_ADDR
+
+echo "> Query denom info from contract"
+tokend query wasm contract-state smart $CONTRACT_ADDR "{ \"get_denom\": {\"creator_address\": \"${CONTRACT_ADDR}\", \"subdenom\": \"mydenom\" }}"
