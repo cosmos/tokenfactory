@@ -114,7 +114,7 @@ For example, here is the schema for `CreateDenom` message:
 tokend tx wasm execute $CONTRACT_ADDR '{ "create_denom": { "subdenom": "mydenom" } }' --from user1 --amount 10000000utoken --gas 1000000 --gas-prices 0.005utoken -y
 
 # If you do this
-tokend q tokenfactory denoms-from-adming $CONTRACT_ADDR
+tokend q tokenfactory denoms-from-admin $CONTRACT_ADDR
 # You should see this:
 # denoms:
 # - factory/factory/cosmos14hj2tavq8fpesdwxxcu44rty3hh90vhujrvcmstl4zr3txmfvw9s4hmalr/mydenom

@@ -56,4 +56,5 @@ base64ct = "=1.6.0"
 
 [dev-dependencies]
 cw-multi-test = { workspace = true }
-#token-bindings-test = { workspace = true }
+rayon = { workspace = true }
+rayon-core = { workspace = true }

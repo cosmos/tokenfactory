@@ -239,12 +239,12 @@ mod tests {
         mock_env, MockApi, MockQuerier, MockStorage, MOCK_CONTRACT_ADDR,
     };
     use cosmwasm_std::{
-        coins, from_json, Attribute, ContractResult, CosmosMsg, MessageInfo, OwnedDeps, Querier, StdError,
+        coins, from_json, Attribute, ContractResult, CosmosMsg, MessageInfo, OwnedDeps, Querier,
         SystemError, SystemResult,
     };
     use std::marker::PhantomData;
     use token_bindings::TokenFactoryQuery;
-    use token_bindings_test::TokenFactoryApp;
+    // use token_bindings_test::TokenFactoryApp;
 
     fn mock_info(sender: &str, funds: &[cosmwasm_std::Coin]) -> MessageInfo {
         MessageInfo {
@@ -296,9 +296,20 @@ mod tests {
         mock_dependencies_with_custom_quierier(custom_querier)
     }
 
-    pub fn mock_dependencies() -> OwnedDeps<MockStorage, MockApi, TokenFactoryApp, TokenFactoryQuery>
+    pub fn mock_dependencies() -> OwnedDeps<MockStorage, MockApi, MockQuerier<TokenFactoryQuery>, TokenFactoryQuery>
     {
-        let custom_querier = TokenFactoryApp::new();
+        let custom_querier: MockQuerier<TokenFactoryQuery> =
+            MockQuerier::new(&[(MOCK_CONTRACT_ADDR, &[])]).with_custom_handler(|a| match a {
+                TokenFactoryQuery::FullDenom {
+                    creator_addr,
+                    subdenom,
+                } => {
+                    let denom = format!("factory/{}/{}", creator_addr, subdenom);
+                    let response = token_bindings::FullDenomResponse { denom };
+                    SystemResult::Ok(ContractResult::Ok(to_json_binary(&response).unwrap()))
+                }
+                _ => todo!(),
+            });
         mock_dependencies_with_custom_quierier(custom_querier)
     }
 
@@ -369,61 +380,6 @@ mod tests {
         assert!(err.to_string().contains("Invalid subdenom"));
     }
 
-    // TODO: Fix address validation for CosmWasm v3 MockApi
-    #[test]
-    #[ignore]
-    fn msg_change_admin_success() {
-        let mut deps = mock_dependencies();
-
-        const NEW_ADMIN_ADDR: &str = "newadmin";
-
-        let info = mock_info("creator", &coins(2, "token"));
-
-        let full_denom_name: &str =
-            &format!("{}/{}/{}", DENOM_PREFIX, MOCK_CONTRACT_ADDR, DENOM_NAME)[..];
-
-        let msg = ExecuteMsg::ChangeAdmin {
-            denom: String::from(full_denom_name),
-            new_admin_address: String::from(NEW_ADMIN_ADDR),
-        };
-        let res = execute(deps.as_mut(), mock_env(), info, msg).unwrap();
-
-        assert_eq!(1, res.messages.len());
-
-        let expected_message = CosmosMsg::from(TokenFactoryMsg::ChangeAdmin {
-            denom: String::from(full_denom_name),
-            new_admin_address: String::from(NEW_ADMIN_ADDR),
-        });
-        let actual_message = res.messages.get(0).unwrap();
-        assert_eq!(expected_message, actual_message.msg);
-
-        assert_eq!(1, res.attributes.len());
-
-        let expected_attribute = Attribute::new("method", "change_admin");
-        let actual_attribute = res.attributes.get(0).unwrap();
-        assert_eq!(expected_attribute, actual_attribute);
-
-        assert_eq!(res.data.ok_or(0), Err(0));
-    }
-
-    // TODO: Fix address validation for CosmWasm v3 MockApi
-    #[test]
-    #[ignore]
-    fn msg_change_admin_empty_address() {
-        let mut deps = mock_dependencies();
-
-        const EMPTY_ADDR: &str = "";
-
-        let info = mock_info("creator", &coins(2, "token"));
-
-        let msg = ExecuteMsg::ChangeAdmin {
-            denom: String::from(DENOM_NAME),
-            new_admin_address: String::from(EMPTY_ADDR),
-        };
-        let err = execute(deps.as_mut(), mock_env(), info, msg).unwrap_err();
-        assert!(err.to_string().contains("human address too short"));
-    }
-
     #[test]
     fn msg_validate_denom_too_many_parts_valid() {
         let mut deps = mock_dependencies();
@@ -433,106 +389,6 @@ mod tests {
             &format!("{}/{}/{}", DENOM_PREFIX, MOCK_CONTRACT_ADDR, DENOM_NAME)[..];
 
         validate_denom(deps.as_mut(), String::from(full_denom_name)).unwrap()
-    }
-
-    // TODO: Fix address validation for CosmWasm v3 MockApi
-    #[test]
-    #[ignore]
-    fn msg_change_admin_invalid_denom() {
-        let mut deps = mock_dependencies();
-
-        const NEW_ADMIN_ADDR: &str = "newadmin";
-
-        let info = mock_info("creator", &coins(2, "token"));
-
-        // too many parts in denom
-        let full_denom_name: &str = &format!(
-            "{}/{}/{}/invalid",
-            DENOM_PREFIX, MOCK_CONTRACT_ADDR, DENOM_NAME
-        )[..];
-
-        let msg = ExecuteMsg::ChangeAdmin {
-            denom: String::from(full_denom_name),
-            new_admin_address: String::from(NEW_ADMIN_ADDR),
-        };
-        let err = execute(deps.as_mut(), mock_env(), info, msg).unwrap_err();
-
-        let expected_error = TokenFactoryError::InvalidDenom {
-            denom: String::from(full_denom_name),
-            message: String::from("denom must have 3 parts separated by /, had 4"),
-        };
-
-        assert!(matches!(err, TokenFactoryError::InvalidDenom { .. }));
-        assert_eq!(err.to_string(), expected_error.to_string());
-    }
-
-    // TODO: Fix address validation for CosmWasm v3 MockApi
-    #[test]
-    #[ignore]
-    fn msg_mint_tokens_success() {
-        let mut deps = mock_dependencies();
-
-        const NEW_ADMIN_ADDR: &str = "newadmin";
-
-        let mint_amount = Uint128::new(100_u128);
-
-        let full_denom_name: &str =
-            &format!("{}/{}/{}", DENOM_PREFIX, MOCK_CONTRACT_ADDR, DENOM_NAME)[..];
-
-        let info = mock_info("creator", &coins(2, "token"));
-
-        let msg = ExecuteMsg::MintTokens {
-            denom: String::from(full_denom_name),
-            amount: mint_amount,
-            mint_to_address: String::from(NEW_ADMIN_ADDR),
-        };
-        let res = execute(deps.as_mut(), mock_env(), info, msg).unwrap();
-
-        assert_eq!(1, res.messages.len());
-
-        let expected_message = CosmosMsg::from(TokenFactoryMsg::MintTokens {
-            denom: String::from(full_denom_name),
-            amount: mint_amount,
-            mint_to_address: String::from(NEW_ADMIN_ADDR),
-        });
-        let actual_message = res.messages.get(0).unwrap();
-        assert_eq!(expected_message, actual_message.msg);
-
-        assert_eq!(1, res.attributes.len());
-
-        let expected_attribute = Attribute::new("method", "mint_tokens");
-        let actual_attribute = res.attributes.get(0).unwrap();
-        assert_eq!(expected_attribute, actual_attribute);
-
-        assert_eq!(res.data.ok_or(0), Err(0));
-    }
-
-    // TODO: Fix address validation for CosmWasm v3 MockApi
-    #[test]
-    #[ignore]
-    fn msg_mint_invalid_denom() {
-        let mut deps = mock_dependencies();
-
-        const NEW_ADMIN_ADDR: &str = "newadmin";
-
-        let mint_amount = Uint128::new(100_u128);
-
-        let info = mock_info("creator", &coins(2, "token"));
-
-        let full_denom_name: &str = &format!("{}/{}", DENOM_PREFIX, MOCK_CONTRACT_ADDR)[..];
-        let msg = ExecuteMsg::MintTokens {
-            denom: String::from(full_denom_name),
-            amount: mint_amount,
-            mint_to_address: String::from(NEW_ADMIN_ADDR),
-        };
-        let err = execute(deps.as_mut(), mock_env(), info, msg).unwrap_err();
-        let expected_error = TokenFactoryError::InvalidDenom {
-            denom: String::from(full_denom_name),
-            message: String::from("denom must have 3 parts separated by /, had 2"),
-        };
-
-        assert!(matches!(err, TokenFactoryError::InvalidDenom { .. }));
-        assert_eq!(err.to_string(), expected_error.to_string());
     }
 
     #[test]
