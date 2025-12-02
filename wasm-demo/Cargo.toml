@@ -21,15 +21,18 @@ incremental = false
 overflow-checks = true
 
 [workspace.dependencies]
-cosmwasm-schema = "1.5"
-cosmwasm-std = "1.5"
+cosmwasm-schema = "2"
+cosmwasm-std = "2"
 schemars = "0.8"
 serde = "1.0"
 itertools = "0.13"
-cw-storage-plus = "1.2"
+cw-storage-plus = "2.0"
 anyhow = "1"
 thiserror = "1.0"
-cw2 = "1.1"
+cw2 = "2.0"
 
-cw-multi-test = "0.20"
+cw-multi-test = "2"
 token-bindings = { path = "./packages/bindings" }
+
+[patch.crates-io]
+ed25519-zebra = { git = "https://github.com/ZcashFoundation/ed25519-zebra.git", tag = "4.0.3", default-features = false, features = ["alloc"] }
