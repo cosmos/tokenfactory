@@ -1,4 +1,4 @@
-# Token Factory CosmWasm Contract Example
+# tokenfactory CosmWasm Contract Example
 
 This demo contract provides a 1:1 mapping to the tokenfactory bindings.
 
