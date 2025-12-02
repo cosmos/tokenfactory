@@ -1,0 +1,39 @@
+[workspace]
+#members = ["packages/bindings", "packages/bindings-test", "contracts/tokenfactory"]
+members = ["packages/bindings", "contracts/tokenfactory"]
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+license = "Apache-2.0"
+repository = "https://github.com/cosmos/tokenfactory"
+homepage = "https://github.com/cosmos/tokenfactory"
+version = "0.53.3"
+
+[profile.release]
+codegen-units = 1
+opt-level = 3
+debug = false
+rpath = false
+lto = true
+debug-assertions = false
+panic = 'abort'
+incremental = false
+overflow-checks = true
+
+[workspace.dependencies]
+cosmwasm-schema = "1.5"
+cosmwasm-std = "1.5"
+schemars = "0.8"
+serde = "1.0"
+itertools = "0.13"
+cw-storage-plus = "1.2"
+anyhow = "1"
+thiserror = "1.0"
+cw2 = "1.1"
+# Pin base64ct to avoid edition2024 requirement
+base64ct = "=1.6.0"
+
+cw-multi-test = "2.0"
+token-bindings = { path = "./packages/bindings" }
+#token-bindings-test = { path = "./packages/bindings-test" }

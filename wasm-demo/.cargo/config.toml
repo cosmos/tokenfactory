@@ -1,0 +1,9 @@
+[build]
+# Disable bulk memory for maximum compatibility
+# Not disabling reference-types explicitly - let Rust 1.78 defaults handle it
+
+[target.wasm32-unknown-unknown]
+rustflags = [
+    "-C", "target-feature=-bulk-memory",
+    "-C", "link-arg=-s",
+]

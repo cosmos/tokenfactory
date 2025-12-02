@@ -197,6 +197,12 @@ func setup(t *testing.T, withGenesis bool, opts ...wasmkeeper.Option) (*TokenFac
 	// Set Default Params
 	app.MintKeeper.Minter.Set(ctx, minttypes.DefaultInitialMinter())
 	app.MintKeeper.Params.Set(ctx, minttypes.DefaultParams())
+
+	// Enable sending for all denoms in bank keeper
+	bankParams := banktypes.DefaultParams()
+	bankParams.DefaultSendEnabled = true
+	app.BankKeeper.SetParams(ctx, bankParams)
+
 	app.CrisisKeeper.ConstantFee.Set(ctx, sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100000)))
 	app.DistrKeeper.Params.Set(ctx, distrtypes.DefaultParams())
 	app.DistrKeeper.FeePool.Set(ctx, distrtypes.FeePool{
@@ -291,8 +297,10 @@ func genesisStateWithValSet(t *testing.T,
 		totalSupply = totalSupply.Add(b.Coins...)
 	}
 
-	// update total supply
-	bankGenesis := banktypes.NewGenesisState(banktypes.DefaultGenesisState().Params, balances, totalSupply, []banktypes.Metadata{}, []banktypes.SendEnabled{})
+	// update total supply with sends enabled
+	bankParams := banktypes.DefaultGenesisState().Params
+	bankParams.DefaultSendEnabled = true // Enable sending for all denoms by default
+	bankGenesis := banktypes.NewGenesisState(bankParams, balances, totalSupply, []banktypes.Metadata{}, []banktypes.SendEnabled{})
 	genesisState[banktypes.ModuleName] = codec.MustMarshalJSON(bankGenesis)
 
 	return genesisState
