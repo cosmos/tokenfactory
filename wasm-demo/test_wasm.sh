@@ -1,5 +1,6 @@
 #!/bin/bash
-# Run this script after starting a local chain with test_node.sh
+# Run this script after starting a local chain with scripts/test_node.sh:
+# tokenfactory$ wasm_demo/test_wasm.sh
 # This will demonstrate storing, instantiating, executing, and querying a tokenfactory CosmWasm contract.
 
 USER1_ADDR=cosmos1hj5fveer5cjtn4wd6wstzugjfdxzl0xpxvjjvr # from scripts/test_node.sh
