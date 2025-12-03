@@ -16,12 +16,14 @@ pub enum ExecuteMsg {
     MintTokens {
         denom: String,
         amount: Uint128,
-        mint_to_address: String,
+        /// Optional recipient address. If not provided, mints to the contract address.
+        mint_to_address: Option<String>,
     },
     BurnTokens {
         denom: String,
         amount: Uint128,
-        burn_from_address: String,
+        /// Optional address to burn from. If not provided, burns from the contract address.
+        burn_from_address: Option<String>,
     },
     ForceTransfer {
         denom: String,

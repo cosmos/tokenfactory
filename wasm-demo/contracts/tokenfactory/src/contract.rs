@@ -35,7 +35,7 @@ pub fn instantiate(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn execute(
     deps: DepsMut<TokenFactoryQuery>,
-    _env: Env,
+    env: Env,
     _info: MessageInfo,
     msg: ExecuteMsg,
 ) -> Result<Response<TokenFactoryMsg>, TokenFactoryError> {
@@ -49,12 +49,12 @@ pub fn execute(
             denom,
             amount,
             mint_to_address,
-        } => mint_tokens(deps, denom, amount, mint_to_address),
+        } => mint_tokens(deps, env, denom, amount, mint_to_address),
         ExecuteMsg::BurnTokens {
             denom,
             amount,
             burn_from_address,
-        } => burn_tokens(deps, denom, amount, burn_from_address),
+        } => burn_tokens(deps, env, denom, amount, burn_from_address),
         ExecuteMsg::ForceTransfer {
             denom,
             amount,
@@ -104,19 +104,29 @@ pub fn change_admin(
 
 pub fn mint_tokens(
     deps: DepsMut<TokenFactoryQuery>,
+    env: Env,
     denom: String,
     amount: Uint128,
-    mint_to_address: String,
+    mint_to_address: Option<String>,
 ) -> Result<Response<TokenFactoryMsg>, TokenFactoryError> {
-    deps.api.addr_validate(&mint_to_address)?;
-
     if amount.eq(&Uint128::new(0_u128)) {
         return Result::Err(TokenFactoryError::ZeroAmount {});
     }
 
+    // Validate address first if provided (before consuming deps)
+    if let Some(ref addr) = mint_to_address {
+        deps.api.addr_validate(addr)?;
+    }
+
     validate_denom(deps, denom.clone())?;
 
-    let mint_tokens_msg = TokenFactoryMsg::mint_contract_tokens(denom, amount, mint_to_address);
+    // Default to contract address if mint_to_address is not provided
+    let recipient = match mint_to_address {
+        Some(addr) => addr,
+        None => env.contract.address.to_string(),
+    };
+
+    let mint_tokens_msg = TokenFactoryMsg::mint_contract_tokens(denom, amount, recipient);
 
     let res = Response::new()
         .add_attribute("method", "mint_tokens")
@@ -127,17 +137,33 @@ pub fn mint_tokens(
 
 pub fn burn_tokens(
     deps: DepsMut<TokenFactoryQuery>,
+    _env: Env,
     denom: String,
     amount: Uint128,
-    burn_from_address: String,
+    burn_from_address: Option<String>,
 ) -> Result<Response<TokenFactoryMsg>, TokenFactoryError> {
     if amount.eq(&Uint128::new(0_u128)) {
         return Result::Err(TokenFactoryError::ZeroAmount {});
     }
 
+    // Validate address first if provided (before consuming deps)
+    if let Some(ref addr) = burn_from_address {
+        deps.api.addr_validate(addr)?;
+    }
+
     validate_denom(deps, denom.clone())?;
 
-    let burn_token_msg = TokenFactoryMsg::burn_contract_tokens(denom, amount, burn_from_address);
+    // Create the appropriate burn message based on whether burn_from_address is provided
+    let burn_token_msg = match burn_from_address {
+        Some(addr) => {
+            // Burn from that specific address (requires EnableBurnFrom)
+            TokenFactoryMsg::burn_contract_tokens(denom, amount, addr)
+        }
+        None => {
+            // Burn from contract's own balance (does not require EnableBurnFrom)
+            TokenFactoryMsg::burn_contract_tokens_from_self(denom, amount)
+        }
+    };
 
     let res = Response::new()
         .add_attribute("method", "burn_tokens")
@@ -318,7 +344,7 @@ mod tests {
         let mut deps = mock_dependencies();
 
         let msg = InstantiateMsg {};
-        let info = mock_info("creator", &coins(1000, "uosmo"));
+        let info = mock_info("creator", &coins(1000, "utoken"));
 
         let res = instantiate(deps.as_mut(), mock_env(), info, msg).unwrap();
         assert_eq!(0, res.messages.len());
@@ -346,7 +372,7 @@ mod tests {
         let subdenom: String = String::from(DENOM_NAME);
 
         let msg = ExecuteMsg::CreateDenom { subdenom };
-        let info = mock_info("creator", &coins(2, "token"));
+        let info = mock_info("creator", &coins(2, "utoken"));
         let res = execute(deps.as_mut(), mock_env(), info, msg).unwrap();
 
         assert_eq!(1, res.messages.len());
@@ -374,7 +400,7 @@ mod tests {
         let subdenom: String = String::from("");
 
         let msg = ExecuteMsg::CreateDenom { subdenom };
-        let info = mock_info("creator", &coins(2, "token"));
+        let info = mock_info("creator", &coins(2, "utoken"));
         let err = execute(deps.as_mut(), mock_env(), info, msg).unwrap_err();
         assert!(matches!(err, TokenFactoryError::InvalidSubdenom { .. }));
         assert!(err.to_string().contains("Invalid subdenom"));
@@ -399,11 +425,11 @@ mod tests {
         let full_denom_name: &str =
             &format!("{}/{}/{}", DENOM_PREFIX, MOCK_CONTRACT_ADDR, DENOM_NAME)[..];
 
-        let info = mock_info("creator", &coins(2, "token"));
+        let info = mock_info("creator", &coins(2, "utoken"));
 
         let msg = ExecuteMsg::BurnTokens {
             denom: String::from(full_denom_name),
-            burn_from_address: String::from(""),
+            burn_from_address: None,
             amount: mint_amount,
         };
         let res = execute(deps.as_mut(), mock_env(), info, msg).unwrap();
@@ -412,7 +438,7 @@ mod tests {
         let expected_message = CosmosMsg::from(TokenFactoryMsg::BurnTokens {
             denom: String::from(full_denom_name),
             amount: mint_amount,
-            burn_from_address: String::from(""),
+            burn_from_address: None,
         });
         let actual_message = res.messages.get(0).unwrap();
         assert_eq!(expected_message, actual_message.msg);
@@ -430,20 +456,21 @@ mod tests {
     fn msg_burn_tokens_input_address() {
         let mut deps = mock_dependencies();
 
-        const BURN_FROM_ADDR: &str = "burnfrom";
         let burn_amount = Uint128::new(100_u128);
         let full_denom_name: &str =
             &format!("{}/{}/{}", DENOM_PREFIX, MOCK_CONTRACT_ADDR, DENOM_NAME)[..];
 
-        let info = mock_info("creator", &coins(2, "token"));
+        let info = mock_info("creator", &coins(2, "utoken"));
 
+        // Test that we can provide Some(address)
         let msg = ExecuteMsg::BurnTokens {
             denom: String::from(full_denom_name),
-            burn_from_address: String::from(BURN_FROM_ADDR),
+            burn_from_address: Some(MOCK_CONTRACT_ADDR.to_string()),
             amount: burn_amount,
         };
-        let err = execute(deps.as_mut(), mock_env(), info, msg).is_ok();
-        assert!(err)
+        let result = execute(deps.as_mut(), mock_env(), info, msg);
+        // Should succeed since we're using MOCK_CONTRACT_ADDR which is valid
+        assert!(result.is_ok())
     }
 
     #[test]
@@ -457,7 +484,7 @@ mod tests {
         let full_denom_name: &str =
             &format!("{}/{}/{}", DENOM_PREFIX, MOCK_CONTRACT_ADDR, DENOM_NAME)[..];
 
-        let info = mock_info("creator", &coins(2, "token"));
+        let info = mock_info("creator", &coins(2, "utoken"));
 
         let msg = ExecuteMsg::ForceTransfer {
             denom: String::from(full_denom_name),
@@ -543,5 +570,29 @@ mod tests {
             }
             err => panic!("Unexpected error: {:?}", err),
         }
+    }
+
+    #[test]
+    fn test_burn_tokens_serialization() {
+        use cosmwasm_std::to_json_string;
+
+        // Test that burn_from_address is omitted when None
+        let burn_none = TokenFactoryMsg::BurnTokens {
+            denom: "factory/cosmos1.../subdenom".to_string(),
+            amount: Uint128::new(100),
+            burn_from_address: None,
+        };
+        let json_none = to_json_string(&burn_none).unwrap();
+        assert!(!json_none.contains("burn_from_address"), "burn_from_address should not appear when None: {}", json_none);
+
+        // Test that burn_from_address is included when Some
+        let burn_some = TokenFactoryMsg::BurnTokens {
+            denom: "factory/cosmos1.../subdenom".to_string(),
+            amount: Uint128::new(100),
+            burn_from_address: Some("cosmos1abc".to_string()),
+        };
+        let json_some = to_json_string(&burn_some).unwrap();
+        assert!(json_some.contains("burn_from_address"), "burn_from_address should appear when Some: {}", json_some);
+        assert!(json_some.contains("cosmos1abc"), "burn_from_address value should be included: {}", json_some);
     }
 }

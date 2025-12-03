@@ -35,11 +35,14 @@ pub enum TokenFactoryMsg {
         mint_to_address: String,
     },
     /// Contracts can burn native tokens for an existing factory denom
-    /// tshat they are the admin of.
+    /// that they are the admin of.
+    /// When burn_from_address is None, the tokens are burned from the contract's own balance.
+    /// When burn_from_address is Some(address), the EnableBurnFrom capability must be enabled.
     BurnTokens {
         denom: String,
         amount: Uint128,
-        burn_from_address: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        burn_from_address: Option<String>,
     },
     /// Contracts can force transfer tokens for an existing factory denom
     /// that they are the admin of.    
@@ -64,11 +67,21 @@ impl TokenFactoryMsg {
         }
     }
 
+    /// Burns tokens from a specific address (requires EnableBurnFrom capability)
     pub fn burn_contract_tokens(denom: String, amount: Uint128, burn_from_address: String) -> Self {
         TokenFactoryMsg::BurnTokens {
             denom,
             amount,
-            burn_from_address,
+            burn_from_address: Some(burn_from_address),
+        }
+    }
+
+    /// Burns tokens from the contract's own balance (does not require EnableBurnFrom capability)
+    pub fn burn_contract_tokens_from_self(denom: String, amount: Uint128) -> Self {
+        TokenFactoryMsg::BurnTokens {
+            denom,
+            amount,
+            burn_from_address: None,
         }
     }
 
