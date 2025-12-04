@@ -59,13 +59,13 @@ type ChangeAdminMsg struct {
 type MintTokensMsg struct {
 	Denom         string `json:"denom"`
 	Amount        string `json:"amount"`
-	MintToAddress string `json:"mint_to_address"`
+	MintToAddress string `json:"mint_to_address,omitempty"`
 }
 
 type BurnTokensMsg struct {
 	Denom           string `json:"denom"`
 	Amount          string `json:"amount"`
-	BurnFromAddress string `json:"burn_from_address"`
+	BurnFromAddress string `json:"burn_from_address,omitempty"`
 }
 
 type ForceTransferMsg struct {
@@ -146,7 +146,7 @@ func setupTokenFactoryContractTest(t *testing.T, addr sdk.AccAddress) (*app.Toke
 }
 
 // Tests
-func TestTokenFactoryDirect_CreateDenom(t *testing.T) {
+func TestTokenFactory_CreateDenom(t *testing.T) {
 	creator := RandomAccountAddress()
 	app, ctx, codeID := setupTokenFactoryContractTest(t, creator)
 
@@ -182,7 +182,50 @@ func TestTokenFactoryDirect_CreateDenom(t *testing.T) {
 	require.Equal(t, expectedDenom, resp.Denom)
 }
 
-func TestTokenFactoryDirect_MintTokens(t *testing.T) {
+func TestTokenFactory_MintTokens(t *testing.T) {
+	creator := RandomAccountAddress()
+	app, ctx, codeID := setupTokenFactoryContractTest(t, creator)
+
+	owner := RandomAccountAddress()
+	// recipient := RandomAccountAddress()
+	contract := instantiateTokenFactoryContract(t, ctx, app, owner, codeID)
+	require.NotEmpty(t, contract)
+
+	// Fund contract with denom creation fees
+	creationFee := types.DefaultParams().DenomCreationFee[0]
+	fundAmount := sdk.NewCoins(sdk.NewCoin(creationFee.Denom, creationFee.Amount.MulRaw(10)))
+	fundAccount(t, ctx, app, contract, fundAmount)
+
+	// Create a denom
+	createMsg := TokenFactoryExecuteMsg{
+		CreateDenom: &CreateDenomMsg{
+			Subdenom: "LUNAR",
+		},
+	}
+	err := executeTokenFactoryContract(t, ctx, app, contract, owner, createMsg, nil)
+	require.NoError(t, err)
+
+	denom := fmt.Sprintf("factory/%s/LUNAR", contract.String())
+
+	// Mint tokens to recipient
+	mintAmount := "1000000"
+	mintMsg := TokenFactoryExecuteMsg{
+		MintTokens: &MintTokensMsg{
+			Denom:  denom,
+			Amount: mintAmount,
+		},
+	}
+	err = executeTokenFactoryContract(t, ctx, app, contract, owner, mintMsg, nil)
+	require.NoError(t, err)
+
+	// Verify recipient received the tokens
+	balances := app.BankKeeper.GetAllBalances(ctx, contract)
+	require.Len(t, balances, 2)
+	require.Equal(t, denom, balances[0].Denom)
+	require.Equal(t, mintAmount, balances[0].Amount.String())
+}
+
+func TestTokenFactory_MintTokensTo(t *testing.T) {
 	creator := RandomAccountAddress()
 	app, ctx, codeID := setupTokenFactoryContractTest(t, creator)
 
@@ -230,7 +273,7 @@ func TestTokenFactoryDirect_MintTokens(t *testing.T) {
 	require.Equal(t, mintAmount, balances[0].Amount.String())
 }
 
-func TestTokenFactoryDirect_BurnTokens(t *testing.T) {
+func TestTokenFactory_BurnTokens(t *testing.T) {
 	creator := RandomAccountAddress()
 	app, ctx, codeID := setupTokenFactoryContractTest(t, creator)
 
@@ -258,9 +301,8 @@ func TestTokenFactoryDirect_BurnTokens(t *testing.T) {
 	mintAmount := "5000000"
 	mintMsg := TokenFactoryExecuteMsg{
 		MintTokens: &MintTokensMsg{
-			Denom:         denom,
-			Amount:        mintAmount,
-			MintToAddress: contract.String(),
+			Denom:  denom,
+			Amount: mintAmount,
 		},
 	}
 	err = executeTokenFactoryContract(t, ctx, app, contract, owner, mintMsg, nil)
@@ -274,9 +316,8 @@ func TestTokenFactoryDirect_BurnTokens(t *testing.T) {
 	burnAmount := "2000000"
 	burnMsg := TokenFactoryExecuteMsg{
 		BurnTokens: &BurnTokensMsg{
-			Denom:           denom,
-			Amount:          burnAmount,
-			BurnFromAddress: contract.String(),
+			Denom:  denom,
+			Amount: burnAmount,
 		},
 	}
 	err = executeTokenFactoryContract(t, ctx, app, contract, owner, burnMsg, nil)
@@ -288,7 +329,66 @@ func TestTokenFactoryDirect_BurnTokens(t *testing.T) {
 	require.Equal(t, expectedBalance.String(), balance.Amount.String())
 }
 
-func TestTokenFactoryDirect_ChangeAdmin(t *testing.T) {
+func TestTokenFactory_BurnTokensFrom(t *testing.T) {
+	creator := RandomAccountAddress()
+	app, ctx, codeID := setupTokenFactoryContractTest(t, creator)
+
+	owner := RandomAccountAddress()
+	contract := instantiateTokenFactoryContract(t, ctx, app, owner, codeID)
+	recipient := RandomAccountAddress()
+	require.NotEmpty(t, contract)
+
+	// Fund contract with denom creation fees
+	creationFee := types.DefaultParams().DenomCreationFee[0]
+	fundAmount := sdk.NewCoins(sdk.NewCoin(creationFee.Denom, creationFee.Amount.MulRaw(10)))
+	fundAccount(t, ctx, app, contract, fundAmount)
+
+	// Create a denom
+	createMsg := TokenFactoryExecuteMsg{
+		CreateDenom: &CreateDenomMsg{
+			Subdenom: "BURN",
+		},
+	}
+	err := executeTokenFactoryContract(t, ctx, app, contract, owner, createMsg, nil)
+	require.NoError(t, err)
+
+	denom := fmt.Sprintf("factory/%s/BURN", contract.String())
+
+	// Mint tokens to contract first
+	mintAmount := "5000000"
+	mintMsg := TokenFactoryExecuteMsg{
+		MintTokens: &MintTokensMsg{
+			Denom:         denom,
+			Amount:        mintAmount,
+			MintToAddress: recipient.String(),
+		},
+	}
+	err = executeTokenFactoryContract(t, ctx, app, contract, owner, mintMsg, nil)
+	require.NoError(t, err)
+
+	// Verify contract has the tokens
+	balance := app.BankKeeper.GetBalance(ctx, recipient, denom)
+	require.Equal(t, mintAmount, balance.Amount.String())
+
+	// Burn tokens from contract
+	burnAmount := "2000000"
+	burnMsg := TokenFactoryExecuteMsg{
+		BurnTokens: &BurnTokensMsg{
+			Denom:           denom,
+			Amount:          burnAmount,
+			BurnFromAddress: recipient.String(),
+		},
+	}
+	err = executeTokenFactoryContract(t, ctx, app, contract, owner, burnMsg, nil)
+	require.NoError(t, err)
+
+	// Verify tokens were burned
+	balance = app.BankKeeper.GetBalance(ctx, recipient, denom)
+	expectedBalance := sdkmath.NewInt(3000000) // 5000000 - 2000000
+	require.Equal(t, expectedBalance.String(), balance.Amount.String())
+}
+
+func TestTokenFactory_ChangeAdmin(t *testing.T) {
 	creator := RandomAccountAddress()
 	app, ctx, codeID := setupTokenFactoryContractTest(t, creator)
 
@@ -329,7 +429,7 @@ func TestTokenFactoryDirect_ChangeAdmin(t *testing.T) {
 	require.Equal(t, newAdmin.String(), authority.Admin)
 }
 
-func TestTokenFactoryDirect_ForceTransfer(t *testing.T) {
+func TestTokenFactory_ForceTransfer(t *testing.T) {
 	creator := RandomAccountAddress()
 	app, ctx, codeID := setupTokenFactoryContractTest(t, creator)
 
@@ -399,7 +499,7 @@ func TestTokenFactoryDirect_ForceTransfer(t *testing.T) {
 	require.Equal(t, expectedBobBalance.String(), bobBalance.Amount.String())
 }
 
-func TestTokenFactoryDirect_MultipleOperations(t *testing.T) {
+func TestTokenFactory_MultipleOperations(t *testing.T) {
 	creator := RandomAccountAddress()
 	app, ctx, codeID := setupTokenFactoryContractTest(t, creator)
 
@@ -461,7 +561,7 @@ func TestTokenFactoryDirect_MultipleOperations(t *testing.T) {
 	}
 }
 
-func TestTokenFactoryDirect_CreateWithFunds(t *testing.T) {
+func TestTokenFactory_CreateWithFunds(t *testing.T) {
 	creator := RandomAccountAddress()
 	app, ctx, codeID := setupTokenFactoryContractTest(t, creator)
 
