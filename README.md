@@ -15,9 +15,9 @@ The `tokenfactory` module allows any account to create a new token with the name
 
 ## Version Tagging
 
-
 | Tag                                                                            | Cosmos SDK | wasmvm | Notes                                                                                                     |
 | ------------------------------------------------------------------------------ | ---------- | ------ | --------------------------------------------------------------------------------------------------------- |
+| [v0.53.4](https://github.com/cosmos/tokenfactory/tree/v0.53.4)                 | v0.53      | v2     | Remove `nft` module                                                                                       |
 | [v0.53.3](https://github.com/cosmos/tokenfactory/tree/v0.53.3)                 | v0.53      | v2     | Rename module to `cosmos/tokenfactory`                                                                    |
 | [v0.53.2](https://github.com/cosmos/tokenfactory/tree/v0.53.2)                 | v0.53      | v2     | Remove sudo mint feature                                                                                  |
 | [v0.53.1](https://github.com/cosmos/tokenfactory/tree/v0.53.1)                 | v0.53      | v2     |                                                                                                           |
