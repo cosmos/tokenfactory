@@ -1,0 +1,38 @@
+[workspace]
+members = ["packages/bindings", "contracts/tokenfactory"]
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+license = "Apache-2.0"
+repository = "https://github.com/cosmos/tokenfactory"
+homepage = "https://github.com/cosmos/tokenfactory"
+version = "0.53.3"
+
+[profile.release]
+codegen-units = 1
+opt-level = 3
+debug = false
+rpath = false
+lto = true
+debug-assertions = false
+panic = 'abort'
+incremental = false
+overflow-checks = true
+
+[workspace.dependencies]
+cosmwasm-schema = "2"
+cosmwasm-std = "2"
+schemars = "0.8"
+serde = "1.0"
+itertools = "0.13"
+cw-storage-plus = "2.0"
+anyhow = "1"
+thiserror = "1.0"
+cw2 = "2.0"
+
+cw-multi-test = "2"
+token-bindings = { path = "./packages/bindings" }
+
+[patch.crates-io]
+ed25519-zebra = { git = "https://github.com/ZcashFoundation/ed25519-zebra.git", tag = "4.0.3", default-features = false, features = ["alloc"] }

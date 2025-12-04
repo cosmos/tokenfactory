@@ -1,0 +1,20 @@
+[package]
+name = "token-bindings"
+version = { workspace = true }
+authors = ["Ethan Frey <ethanfrey@users.noreply.github.com>", "Reece Williams <reecepbcups@users.noreply.github.com>", "Jake Hartnell <jakehartnell@users.noreply.github.com>"]
+description = "Bindings for CustomMsg and CustomQuery for blockchains supporting Token Factory."
+keywords = ["juno", "blockchain", "token-factory", "osmosis"]
+readme = "../../README.md"
+
+edition = { workspace = true }
+homepage = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+
+[dependencies]
+cosmwasm-schema = { workspace = true }
+cosmwasm-std = { workspace = true }
+schemars = { workspace = true }
+serde = { workspace = true, default-features = false, features = ["derive"] }
+
+[dev-dependencies]

@@ -30,3 +30,10 @@ configs/logs.json
 
 exclusive.lock
 go.work.sum
+
+# CosmWasm Contracts
+target
+artifacts
+.idea
+packages/*/schema
+contracts/*/schema
