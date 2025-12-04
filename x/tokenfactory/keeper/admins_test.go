@@ -38,29 +38,41 @@ func (suite *KeeperTestSuite) TestAdminMsgs() {
 	suite.Require().Nil(adminRes.Denoms)
 
 	// Test minting to admins own account
-	_, err = suite.msgServer.Mint(suite.Ctx, types.NewMsgMint(suite.TestAccs[0].String(), sdk.NewInt64Coin(suite.defaultDenom, 10)))
-	addr0bal += 10
+	amount := int64(10)
+	_, err = suite.msgServer.Mint(suite.Ctx, types.NewMsgMint(suite.TestAccs[0].String(), sdk.NewInt64Coin(suite.defaultDenom, amount)))
+	addr0bal += amount
 	suite.Require().NoError(err)
-	suite.Require().True(bankKeeper.GetBalance(suite.Ctx, suite.TestAccs[0], suite.defaultDenom).Amount.Int64() == addr0bal, bankKeeper.GetBalance(suite.Ctx, suite.TestAccs[0], suite.defaultDenom))
+	suite.Require().Equal(addr0bal, bankKeeper.GetBalance(suite.Ctx, suite.TestAccs[0], suite.defaultDenom).Amount.Int64())
 
 	// Test minting to a different account
-	_, err = suite.msgServer.Mint(suite.Ctx, types.NewMsgMintTo(suite.TestAccs[0].String(), sdk.NewInt64Coin(suite.defaultDenom, 10), suite.TestAccs[1].String()))
-	addr1bal += 10
+	_, err = suite.msgServer.Mint(suite.Ctx, types.NewMsgMintTo(suite.TestAccs[0].String(), sdk.NewInt64Coin(suite.defaultDenom, amount), suite.TestAccs[1].String()))
+	addr1bal += amount
 	suite.Require().NoError(err)
-	suite.Require().True(suite.App.BankKeeper.GetBalance(suite.Ctx, suite.TestAccs[1], suite.defaultDenom).Amount.Int64() == addr1bal, suite.App.BankKeeper.GetBalance(suite.Ctx, suite.TestAccs[1], suite.defaultDenom))
+	suite.Require().Equal(addr1bal, suite.App.BankKeeper.GetBalance(suite.Ctx, suite.TestAccs[1], suite.defaultDenom).Amount.Int64())
 
-	// Test force transferring
-	_, err = suite.msgServer.ForceTransfer(suite.Ctx, types.NewMsgForceTransfer(suite.TestAccs[0].String(), sdk.NewInt64Coin(suite.defaultDenom, 5), suite.TestAccs[1].String(), suite.TestAccs[0].String()))
-	addr1bal -= 5
-	addr0bal += 5
+	// Test force transferring from account 1 to account 0
+	amount = 5
+	_, err = suite.msgServer.ForceTransfer(suite.Ctx, types.NewMsgForceTransfer(suite.TestAccs[0].String(), sdk.NewInt64Coin(suite.defaultDenom, amount), suite.TestAccs[1].String(), suite.TestAccs[0].String()))
+	addr1bal -= amount
+	addr0bal += amount
 	suite.Require().NoError(err)
-	suite.Require().True(suite.App.BankKeeper.GetBalance(suite.Ctx, suite.TestAccs[0], suite.defaultDenom).Amount.Int64() == addr0bal, suite.App.BankKeeper.GetBalance(suite.Ctx, suite.TestAccs[0], suite.defaultDenom))
-	suite.Require().True(suite.App.BankKeeper.GetBalance(suite.Ctx, suite.TestAccs[1], suite.defaultDenom).Amount.Int64() == addr1bal, suite.App.BankKeeper.GetBalance(suite.Ctx, suite.TestAccs[1], suite.defaultDenom))
+	suite.Require().Equal(addr0bal, suite.App.BankKeeper.GetBalance(suite.Ctx, suite.TestAccs[0], suite.defaultDenom).Amount.Int64())
+	suite.Require().Equal(addr1bal, suite.App.BankKeeper.GetBalance(suite.Ctx, suite.TestAccs[1], suite.defaultDenom).Amount.Int64())
 
 	// Test burning from own account
-	_, err = suite.msgServer.Burn(suite.Ctx, types.NewMsgBurn(suite.TestAccs[0].String(), sdk.NewInt64Coin(suite.defaultDenom, 5)))
+	_, err = suite.msgServer.Burn(suite.Ctx, types.NewMsgBurn(suite.TestAccs[0].String(), sdk.NewInt64Coin(suite.defaultDenom, amount)))
+	addr0bal -= amount
 	suite.Require().NoError(err)
-	suite.Require().True(bankKeeper.GetBalance(suite.Ctx, suite.TestAccs[1], suite.defaultDenom).Amount.Int64() == addr1bal)
+	suite.Require().Equal(addr0bal, bankKeeper.GetBalance(suite.Ctx, suite.TestAccs[0], suite.defaultDenom).Amount.Int64())
+	suite.Require().Equal(addr1bal, bankKeeper.GetBalance(suite.Ctx, suite.TestAccs[1], suite.defaultDenom).Amount.Int64())
+
+	// Test burning from a different account
+	amount = 2
+	_, err = suite.msgServer.Burn(suite.Ctx, types.NewMsgBurnFrom(suite.TestAccs[0].String(), sdk.NewInt64Coin(suite.defaultDenom, amount), suite.TestAccs[1].String()))
+	addr1bal -= amount
+	suite.Require().NoError(err)
+	suite.Require().Equal(addr0bal, bankKeeper.GetBalance(suite.Ctx, suite.TestAccs[0], suite.defaultDenom).Amount.Int64())
+	suite.Require().Equal(addr1bal, bankKeeper.GetBalance(suite.Ctx, suite.TestAccs[1], suite.defaultDenom).Amount.Int64())
 
 	// Test Change Admin
 	_, err = suite.msgServer.ChangeAdmin(suite.Ctx, types.NewMsgChangeAdmin(suite.TestAccs[0].String(), suite.defaultDenom, suite.TestAccs[1].String()))
@@ -90,10 +102,11 @@ func (suite *KeeperTestSuite) TestAdminMsgs() {
 	suite.Require().Error(err)
 
 	// Make sure the new admin works
-	_, err = suite.msgServer.Mint(suite.Ctx, types.NewMsgMint(suite.TestAccs[1].String(), sdk.NewInt64Coin(suite.defaultDenom, 5)))
-	addr1bal += 5
+	amount = 5
+	_, err = suite.msgServer.Mint(suite.Ctx, types.NewMsgMint(suite.TestAccs[1].String(), sdk.NewInt64Coin(suite.defaultDenom, amount)))
+	addr1bal += amount
 	suite.Require().NoError(err)
-	suite.Require().True(bankKeeper.GetBalance(suite.Ctx, suite.TestAccs[1], suite.defaultDenom).Amount.Int64() == addr1bal)
+	suite.Require().Equal(addr1bal, bankKeeper.GetBalance(suite.Ctx, suite.TestAccs[1], suite.defaultDenom).Amount.Int64())
 
 	// Try setting admin to empty
 	_, err = suite.msgServer.ChangeAdmin(suite.Ctx, types.NewMsgChangeAdmin(suite.TestAccs[1].String(), suite.defaultDenom, ""))
@@ -345,12 +358,12 @@ func (suite *KeeperTestSuite) TestForceTransferDenom() {
 			fromAddr, err := sdk.AccAddressFromBech32(tc.forceTransferMsg.TransferFromAddress)
 			suite.Require().NoError(err)
 			fromBal := suite.App.BankKeeper.GetBalance(suite.Ctx, fromAddr, suite.defaultDenom).Amount
-			suite.Require().True(fromBal.Int64() == balances[tc.forceTransferMsg.TransferFromAddress])
+			suite.Require().Equal(balances[tc.forceTransferMsg.TransferFromAddress], fromBal.Int64())
 
 			toAddr, err := sdk.AccAddressFromBech32(tc.forceTransferMsg.TransferToAddress)
 			suite.Require().NoError(err)
 			toBal := suite.App.BankKeeper.GetBalance(suite.Ctx, toAddr, suite.defaultDenom).Amount
-			suite.Require().True(toBal.Int64() == balances[tc.forceTransferMsg.TransferToAddress])
+			suite.Require().Equal(balances[tc.forceTransferMsg.TransferToAddress], toBal.Int64())
 		})
 	}
 }

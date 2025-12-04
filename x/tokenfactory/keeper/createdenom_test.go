@@ -3,6 +3,7 @@ package keeper_test
 import (
 	"fmt"
 
+	"github.com/cosmos/tokenfactory/x/tokenfactory/keeper"
 	"github.com/cosmos/tokenfactory/x/tokenfactory/types"
 
 	sdkmath "cosmossdk.io/math"
@@ -159,6 +160,172 @@ func (suite *KeeperTestSuite) TestCreateDenom() {
 				suite.Require().Error(err)
 				// Ensure we don't charge if we expect an error
 				suite.Require().True(preCreateBalance.IsEqual(postCreateBalance))
+			}
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestCreateDenomGasConsumption() {
+	for _, tc := range []struct {
+		desc                    string
+		denomCreationGasConsume uint64
+		expectedGasConsumed     uint64
+	}{
+		{
+			desc:                    "gas consumption is zero",
+			denomCreationGasConsume: 0,
+			expectedGasConsumed:     0,
+		},
+		{
+			desc:                    "gas consumption is set to 1000",
+			denomCreationGasConsume: 1000,
+			expectedGasConsumed:     1000,
+		},
+		{
+			desc:                    "gas consumption is set to 2_000_000 (default)",
+			denomCreationGasConsume: 2_000_000,
+			expectedGasConsumed:     2_000_000,
+		},
+		{
+			desc:                    "gas consumption is set to large value",
+			denomCreationGasConsume: 10_000_000,
+			expectedGasConsumed:     10_000_000,
+		},
+	} {
+		suite.Run(fmt.Sprintf("Case %s", tc.desc), func() {
+			suite.SetupTest()
+
+			// Set the gas consumption parameter
+			params := types.DefaultParams()
+			params.DenomCreationGasConsume = tc.denomCreationGasConsume
+			err := suite.App.TokenFactoryKeeper.SetParams(suite.Ctx, params)
+			suite.Require().NoError(err)
+
+			// Get gas consumed before creating denom
+			gasConsumedBefore := suite.Ctx.GasMeter().GasConsumed()
+
+			// Create a denom
+			_, err = suite.msgServer.CreateDenom(suite.Ctx, types.NewMsgCreateDenom(suite.TestAccs[0].String(), "testcoin"))
+			suite.Require().NoError(err)
+
+			// Get gas consumed after creating denom
+			gasConsumedAfter := suite.Ctx.GasMeter().GasConsumed()
+
+			// Calculate the gas consumed by CreateDenom
+			actualGasConsumed := gasConsumedAfter - gasConsumedBefore
+
+			// The actual gas consumed should be at least the expected amount
+			// (it may be slightly more due to other operations in CreateDenom)
+			suite.Require().GreaterOrEqual(actualGasConsumed, tc.expectedGasConsumed,
+				"Expected at least %d gas to be consumed, but only %d was consumed",
+				tc.expectedGasConsumed, actualGasConsumed)
+
+			// Verify the gas was consumed with the correct descriptor
+			// We can't directly check the descriptor, but we can verify the amount is within a reasonable range
+			// CreateDenom has other operations, so allow for some overhead (e.g., 100k gas)
+			const overhead = uint64(100_000)
+			suite.Require().LessOrEqual(actualGasConsumed, tc.expectedGasConsumed+overhead,
+				"Gas consumed (%d) exceeds expected (%d) plus overhead (%d)",
+				actualGasConsumed, tc.expectedGasConsumed, overhead)
+		})
+	}
+}
+
+func (suite *KeeperTestSuite) TestCommunityPoolFunding() {
+	for _, tc := range []struct {
+		desc                     string
+		enableCommunityPoolFee   bool
+		denomCreationFee         sdk.Coins
+		expectCommunityPoolDelta bool
+	}{
+		{
+			desc:                     "community pool funding enabled - fees should go to community pool",
+			enableCommunityPoolFee:   true,
+			denomCreationFee:         sdk.NewCoins(sdk.NewCoin("stake", sdkmath.NewInt(50_000_000))),
+			expectCommunityPoolDelta: true,
+		},
+		{
+			desc:                     "community pool funding disabled - fees should be burned",
+			enableCommunityPoolFee:   false,
+			denomCreationFee:         sdk.NewCoins(sdk.NewCoin("stake", sdkmath.NewInt(50_000_000))),
+			expectCommunityPoolDelta: false,
+		},
+		{
+			desc:                     "nil fee - no changes expected",
+			enableCommunityPoolFee:   true,
+			denomCreationFee:         nil,
+			expectCommunityPoolDelta: false,
+		},
+	} {
+		suite.Run(fmt.Sprintf("Case %s", tc.desc), func() {
+			suite.SetupTest()
+
+			// Configure the capability
+			// Note: TokenFactoryKeeper is stored by value in the app. We can modify it using
+			// SetEnabledCapabilities (which has a pointer receiver), but we must recreate the
+			// msgServer afterward because it has its own copy of the keeper from SetupTest().
+			var capabilities []string
+			if tc.enableCommunityPoolFee {
+				capabilities = []string{types.EnableCommunityPoolFeeFunding}
+			}
+
+			// Use the pointer to the keeper in the app struct to set capabilities
+			keeperPtr := &suite.App.TokenFactoryKeeper
+			keeperPtr.SetEnabledCapabilities(suite.Ctx, capabilities)
+
+			// IMPORTANT: Recreate the msgServer because it has a copy of the keeper
+			// The msgServer was created in SetupTest() before we modified the capabilities
+			suite.msgServer = keeper.NewMsgServerImpl(suite.App.TokenFactoryKeeper)
+
+			// Set the denom creation fee parameter
+			params := types.DefaultParams()
+			params.DenomCreationFee = tc.denomCreationFee
+			err := suite.App.TokenFactoryKeeper.SetParams(suite.Ctx, params)
+			suite.Require().NoError(err)
+
+			// Get initial community pool balance
+			communityPoolBefore := suite.GetCommunityPoolBalance()
+
+			// Get initial user balance
+			userBalanceBefore := suite.App.BankKeeper.GetBalance(suite.Ctx, suite.TestAccs[0], "stake")
+
+			// Create a denom
+			_, err = suite.msgServer.CreateDenom(suite.Ctx, types.NewMsgCreateDenom(suite.TestAccs[0].String(), "testcoin"))
+			suite.Require().NoError(err)
+
+			// Get final community pool balance
+			communityPoolAfter := suite.GetCommunityPoolBalance()
+
+			// Get final user balance
+			userBalanceAfter := suite.App.BankKeeper.GetBalance(suite.Ctx, suite.TestAccs[0], "stake")
+
+			// Calculate changes
+			communityPoolDelta := communityPoolAfter.Sub(communityPoolBefore)
+			userBalanceDelta := userBalanceBefore.Sub(userBalanceAfter)
+
+			if tc.expectCommunityPoolDelta {
+				// Verify fees went to community pool
+				expectedDelta := sdk.NewDecCoinsFromCoins(tc.denomCreationFee...)
+				suite.Require().Equal(expectedDelta, communityPoolDelta,
+					"Community pool should increase by the denom creation fee amount")
+
+				// Verify user balance decreased by the fee amount
+				suite.Require().Equal(tc.denomCreationFee[0], userBalanceDelta,
+					"User balance should decrease by the denom creation fee amount")
+			} else {
+				// Verify community pool did NOT increase
+				suite.Require().True(communityPoolDelta.IsZero(),
+					"Community pool should not increase when capability is disabled or fee is nil")
+
+				if tc.denomCreationFee != nil {
+					// Verify user was still charged (fees were burned)
+					suite.Require().Equal(tc.denomCreationFee[0], userBalanceDelta,
+						"User balance should decrease when fees are burned")
+				} else {
+					// Verify user was not charged when fee is nil
+					suite.Require().True(userBalanceDelta.IsZero(),
+						"User balance should not change when fee is nil")
+				}
 			}
 		})
 	}
