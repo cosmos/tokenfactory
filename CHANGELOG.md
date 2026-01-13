@@ -2,6 +2,12 @@
 
 ## UNRELEASED
 
+## v0.53.5
+
+### FEATURES
+
+* The create denom gas consume param is validated with the params `Validate` function.
+
 ## v0.53.4
 
 ### FEATURES
