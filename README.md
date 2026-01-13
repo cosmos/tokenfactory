@@ -13,16 +13,6 @@ The `tokenfactory` module allows any account to create a new token with the name
 - Create a transfer of their denom between any two accounts
 - Change the admin. The `ChangeAdmin` functionality allows changing the master admin account, or even setting it to "", meaning no account has admin privileges of the asset.
 
-## Version Tagging
-
-| Tag                                                                            | Cosmos SDK | wasmvm | Notes                                                                                                     |
-| ------------------------------------------------------------------------------ | ---------- | ------ | --------------------------------------------------------------------------------------------------------- |
-| [v0.53.4](https://github.com/cosmos/tokenfactory/tree/v0.53.4)                 | v0.53      | v2     | Remove `nft` module                                                                                       |
-| [v0.53.3](https://github.com/cosmos/tokenfactory/tree/v0.53.3)                 | v0.53      | v2     | Rename module to `cosmos/tokenfactory`                                                                    |
-| [v0.53.2](https://github.com/cosmos/tokenfactory/tree/v0.53.2)                 | v0.53      | v2     | Remove sudo mint feature                                                                                  |
-| [v0.53.1](https://github.com/cosmos/tokenfactory/tree/v0.53.1)                 | v0.53      | v2     |                                                                                                           |
-| [v0.50.7-wasmvm2](https://github.com/cosmos/tokenfactory/tree/v0.50.7-wasmvm2) | v0.50      | v2     | Matches [upstream tag](https://github.com/strangelove-ventures/tokenfactory/releases/tag/v0.50.7-wasmvm2) |
-
 ## References
 
 - Osmosis Labs [TokenFactory](https://github.com/osmosis-labs/osmosis/tree/main/x/tokenfactory)
