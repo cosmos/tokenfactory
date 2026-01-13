@@ -23,6 +23,11 @@ func DefaultParams() Params {
 // validate params.
 func (p Params) Validate() error {
 	err := validateDenomCreationFee(p.DenomCreationFee)
+	if err != nil {
+		return err
+	}
+
+	err = validateDenomCreationFeeGasConsume(p.DenomCreationGasConsume)
 
 	return err
 }
