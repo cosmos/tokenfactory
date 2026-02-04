@@ -44,7 +44,7 @@ The resulting contract will be found in `wasm-demo/contracts/tokenfactory/target
 #### Option 2: Optimized Compilation
 
 ```sh
-cd wasm
+cd wasm-demo
 docker run --rm -v "$(pwd)":/code \
   --mount type=volume,source="$(basename "$(pwd)")_cache",target=/target \
   --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
