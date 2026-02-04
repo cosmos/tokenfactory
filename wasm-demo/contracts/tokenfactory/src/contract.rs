@@ -36,9 +36,15 @@ pub fn instantiate(
 pub fn execute(
     deps: DepsMut<TokenFactoryQuery>,
     env: Env,
-    _info: MessageInfo,
+    info: MessageInfo,
     msg: ExecuteMsg,
 ) -> Result<Response<TokenFactoryMsg>, TokenFactoryError> {
+    // Check if the sender is the contract owner
+    let state = STATE.load(deps.storage)?;
+    if info.sender != state.owner {
+        return Err(TokenFactoryError::Unauthorized {});
+    }
+
     match msg {
         ExecuteMsg::CreateDenom { subdenom } => create_denom(subdenom),
         ExecuteMsg::ChangeAdmin {
