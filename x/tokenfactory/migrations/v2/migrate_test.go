@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/cosmos/tokenfactory/x/tokenfactory"
-	"github.com/cosmos/tokenfactory/x/tokenfactory/exported"
 	v2 "github.com/cosmos/tokenfactory/x/tokenfactory/migrations/v2"
 	"github.com/cosmos/tokenfactory/x/tokenfactory/types"
 	"github.com/stretchr/testify/require"
@@ -12,21 +11,8 @@ import (
 	sdkstore "cosmossdk.io/store/types"
 
 	"github.com/cosmos/cosmos-sdk/testutil"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 )
-
-type mockSubspace struct {
-	ps types.Params
-}
-
-func newMockSubspace(ps types.Params) mockSubspace {
-	return mockSubspace{ps: ps}
-}
-
-func (ms mockSubspace) GetParamSet(_ sdk.Context, ps exported.ParamSet) {
-	*ps.(*types.Params) = ms.ps
-}
 
 func TestMigrate(t *testing.T) {
 	// x/param conversion
@@ -38,14 +24,14 @@ func TestMigrate(t *testing.T) {
 	ctx := testutil.DefaultContext(storeKey, tKey)
 	store := ctx.KVStore(storeKey)
 
-	legacySubspace := newMockSubspace(types.Params{
+	expectedParams := types.Params{
 		DenomCreationFee:        nil,
 		DenomCreationGasConsume: 2_000_000,
-	})
-	require.NoError(t, v2.Migrate(ctx, store, legacySubspace, cdc))
+	}
+	require.NoError(t, v2.Migrate(ctx, store, cdc))
 
 	var res types.Params
 	bz := store.Get(v2.ParamsKey)
 	require.NoError(t, cdc.Unmarshal(bz, &res))
-	require.Equal(t, legacySubspace.ps, res)
+	require.Equal(t, expectedParams, res)
 }

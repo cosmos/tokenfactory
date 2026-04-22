@@ -3,7 +3,6 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/cosmos/tokenfactory/x/tokenfactory/exported"
 	v2 "github.com/cosmos/tokenfactory/x/tokenfactory/migrations/v2"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -12,14 +11,12 @@ import (
 
 // Migrator is a struct for handling in-place state migrations.
 type Migrator struct {
-	keeper         Keeper
-	legacySubspace exported.Subspace
+	keeper Keeper
 }
 
-func NewMigrator(k Keeper, ss exported.Subspace) Migrator {
+func NewMigrator(k Keeper) Migrator {
 	return Migrator{
-		keeper:         k,
-		legacySubspace: ss,
+		keeper: k,
 	}
 }
 
@@ -45,7 +42,7 @@ func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 
 	}
 
-	return v2.Migrate(ctx, ctx.KVStore(m.keeper.storeKey), m.legacySubspace, m.keeper.cdc)
+	return v2.Migrate(ctx, ctx.KVStore(m.keeper.storeKey), m.keeper.cdc)
 }
 
 func (m Migrator) SetMetadata(denomMetadata *banktypes.Metadata) {
