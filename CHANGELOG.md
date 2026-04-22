@@ -3,7 +3,7 @@
 ## UNRELEASED
 
 * (wasm-demo) Restrict message execution to the contract owner only ([#15](https://github.com/cosmos/tokenfactory/pull/15)).
-* Remove `x/circuit` module.
+* Remove `circuit`, `group`, and `crisis` modules from sample app ([#17](https://github.com/cosmos/tokenfactory/pull/17)).
 
 ## v0.53.5
 
