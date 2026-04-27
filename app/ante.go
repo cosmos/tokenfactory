@@ -10,8 +10,6 @@ import (
 	"github.com/cosmos/ibc-go/v10/modules/core/keeper"
 
 	corestoretypes "cosmossdk.io/core/store"
-	circuitante "cosmossdk.io/x/circuit/ante"
-	circuitkeeper "cosmossdk.io/x/circuit/keeper"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -27,7 +25,6 @@ type HandlerOptions struct {
 	NodeConfig            *wasmTypes.NodeConfig
 	WasmKeeper            *wasmkeeper.Keeper
 	TXCounterStoreService corestoretypes.KVStoreService
-	CircuitKeeper         *circuitkeeper.Keeper
 }
 
 func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
@@ -46,16 +43,12 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 	if options.TXCounterStoreService == nil {
 		return nil, errors.New("wasm store service is required for ante builder")
 	}
-	if options.CircuitKeeper == nil {
-		return nil, errors.New("circuit keeper is required for ante builder")
-	}
 
 	anteDecorators := []sdk.AnteDecorator{
 		ante.NewSetUpContextDecorator(),
 		wasmkeeper.NewLimitSimulationGasDecorator(options.NodeConfig.SimulationGasLimit), // after setup context to enforce limits early
 		wasmkeeper.NewCountTXDecorator(options.TXCounterStoreService),
 		wasmkeeper.NewGasRegisterDecorator(options.WasmKeeper.GetGasRegister()),
-		circuitante.NewCircuitBreakerDecorator(options.CircuitKeeper),
 		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
 		ante.NewValidateBasicDecorator(),
 		ante.NewTxTimeoutHeightDecorator(),

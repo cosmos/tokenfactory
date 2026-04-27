@@ -203,7 +203,6 @@ func setup(t *testing.T, withGenesis bool, opts ...wasmkeeper.Option) (*TokenFac
 	bankParams.DefaultSendEnabled = true
 	app.BankKeeper.SetParams(ctx, bankParams)
 
-	app.CrisisKeeper.ConstantFee.Set(ctx, sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100000)))
 	app.DistrKeeper.Params.Set(ctx, distrtypes.DefaultParams())
 	app.DistrKeeper.FeePool.Set(ctx, distrtypes.FeePool{
 		CommunityPool: sdk.NewDecCoins(),

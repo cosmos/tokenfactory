@@ -1,7 +1,6 @@
 package v2
 
 import (
-	"github.com/cosmos/tokenfactory/x/tokenfactory/exported"
 	"github.com/cosmos/tokenfactory/x/tokenfactory/types"
 
 	sdkstore "cosmossdk.io/store/types"
@@ -21,7 +20,6 @@ var ParamsKey = []byte{0x00}
 func Migrate(
 	_ sdk.Context,
 	store sdkstore.KVStore,
-	_ exported.Subspace,
 	cdc codec.BinaryCodec,
 ) error {
 	// Migrates mainnet params -> the new keeper params storeKey (from x/params)
