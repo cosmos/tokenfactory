@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/v3/types"
 	bindingstypes "github.com/cosmos/tokenfactory/x/tokenfactory/bindings/types"
 	tokenfactorykeeper "github.com/cosmos/tokenfactory/x/tokenfactory/keeper"
 	tokenfactorytypes "github.com/cosmos/tokenfactory/x/tokenfactory/types"

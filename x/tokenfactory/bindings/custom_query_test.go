@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	wasmvmtypes "github.com/CosmWasm/wasmvm/v2/types"
+	wasmvmtypes "github.com/CosmWasm/wasmvm/v3/types"
 	"github.com/cosmos/tokenfactory/app"
 	bindings "github.com/cosmos/tokenfactory/x/tokenfactory/bindings/types"
 	"github.com/stretchr/testify/require"
