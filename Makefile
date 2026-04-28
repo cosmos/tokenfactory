@@ -150,7 +150,7 @@ coverage: ## Run coverage report
 	@echo "  --> Running App State Determinism Simulation"
 	@${COV_SIM_CMD} -test.run TestAppStateDeterminism ${COV_SIM_COMMON} > /dev/null 2>&1
 	@echo "--> Running unit & e2e tests coverage"
-	@go test -timeout 60m -race -covermode=atomic -v -cpu=$(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 1) -cover $(go list ./...) ./interchaintest/... -coverpkg=${COV_PKG} -args -test.gocoverdir="${COV_UNIT_E2E}" > /dev/null 2>&1
+	@go test -timeout 60m -race -covermode=atomic -v -cpu=$(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 1) -cover $(shell go list ./...) ./interchaintest/... -coverpkg=${COV_PKG} -args -test.gocoverdir="${COV_UNIT_E2E}" > /dev/null 2>&1
 	@echo "--> Merging coverage reports"
 	@go tool covdata merge -i=${COV_UNIT_E2E},${COV_SIMULATION} -o ${COV_ROOT}
 	@echo "--> Converting binary coverage report to text format"
