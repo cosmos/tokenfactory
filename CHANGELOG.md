@@ -1,14 +1,14 @@
 # CHANGELOG
 
-## UNRELEASED
+## v0.53.6
 
 * (wasm-demo) Restrict message execution to the contract owner only ([#15](https://github.com/cosmos/tokenfactory/pull/15)).
 * Remove `circuit`, `crisis`, `group`, and `params` modules from sample app ([#17](https://github.com/cosmos/tokenfactory/pull/17)).
-* Bump `cosmos-sdk` to v0.53.7
-* Bump `comet-bft` to v0.38.21
-* Bump `ibc-go` to v10.6.0
-* Bump `wasmd` to v0.61.11
-* Bump `wasmvm` to v3.0.4
+* Bump `cosmos-sdk` to v0.53.7 ([#18](https://github.com/cosmos/tokenfactory/pull/18))
+* Bump `comet-bft` to v0.38.21 ([#18](https://github.com/cosmos/tokenfactory/pull/18))
+* Bump `ibc-go` to v10.6.0 ([#18](https://github.com/cosmos/tokenfactory/pull/18))
+* Bump `wasmd` to v0.61.11 ([#18](https://github.com/cosmos/tokenfactory/pull/18))
+* Bump `wasmvm` to v3.0.4 ([#18](https://github.com/cosmos/tokenfactory/pull/18))
 
 ## v0.53.5
 
