@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## UNRELEASED
+
+### DEPENDENCIES
+
+* Bump golang to v1.25.9
+* Bump `cosmos-sdk` to v0.54.2
+* Bump `comet-bft` to v0.39.0
+* Bump `ibc-go` to v11.0.0
+* Bump `wasmd` to v0.70.1
+* Bump `wasmd` to v3.0.5
+* Bump `interchaintest` to v11
+
 ## v0.53.6
 
 * (wasm-demo) Restrict message execution to the contract owner only ([#15](https://github.com/cosmos/tokenfactory/pull/15)).
