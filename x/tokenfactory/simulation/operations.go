@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/tokenfactory/x/tokenfactory/types"
 
 	sdkmath "cosmossdk.io/math"
-	sdkstore "cosmossdk.io/store"
+	sdkstore "github.com/cosmos/cosmos-sdk/store/v2"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"

@@ -2,23 +2,22 @@ package cmd
 
 import (
 	"errors"
-	"io"
 	"os"
 
 	"github.com/CosmWasm/wasmd/x/wasm"
 	wasmcli "github.com/CosmWasm/wasmd/x/wasm/client/cli"
 	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
+	"github.com/cosmos/tokenfactory/app"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/cosmos/tokenfactory/app"
 
 	cmtcfg "github.com/cometbft/cometbft/config"
 
 	dbm "github.com/cosmos/cosmos-db"
 
-	"cosmossdk.io/log"
+	"cosmossdk.io/log/v2"
 	confixcmd "cosmossdk.io/tools/confix/cmd"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -205,7 +204,6 @@ func txCommand() *cobra.Command {
 func newApp(
 	logger log.Logger,
 	db dbm.DB,
-	traceStore io.Writer,
 	appOpts servertypes.AppOptions,
 ) servertypes.Application {
 	baseappOptions := server.DefaultBaseappOptions(appOpts)
@@ -216,7 +214,7 @@ func newApp(
 	}
 
 	return app.NewApp(
-		logger, db, traceStore, true,
+		logger, db, nil, true,
 		appOpts,
 		wasmOpts,
 		baseappOptions...,
@@ -227,7 +225,6 @@ func newApp(
 func appExport(
 	logger log.Logger,
 	db dbm.DB,
-	traceStore io.Writer,
 	height int64,
 	forZeroHeight bool,
 	jailAllowedAddrs []string,
@@ -254,13 +251,13 @@ func appExport(
 	var emptyWasmOpts []wasmkeeper.Option
 
 	if height != -1 {
-		chainApp = app.NewApp(logger, db, traceStore, false, appOpts, emptyWasmOpts)
+		chainApp = app.NewApp(logger, db, nil, false, appOpts, emptyWasmOpts)
 
 		if err := chainApp.LoadHeight(height); err != nil {
 			return servertypes.ExportedApp{}, err
 		}
 	} else {
-		chainApp = app.NewApp(logger, db, traceStore, true, appOpts, emptyWasmOpts)
+		chainApp = app.NewApp(logger, db, nil, true, appOpts, emptyWasmOpts)
 	}
 
 	return chainApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs, modulesToExport)

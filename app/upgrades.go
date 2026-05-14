@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/tokenfactory/app/upgrades"
 	"github.com/cosmos/tokenfactory/app/upgrades/noop"
 
-	upgradetypes "cosmossdk.io/x/upgrade/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 )
 
 // Upgrades list of chain upgrades
