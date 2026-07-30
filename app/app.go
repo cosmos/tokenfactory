@@ -24,42 +24,42 @@ import (
 
 	dbm "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/gogoproto/proto"
-	ica "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts"
-	icacontroller "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller"
-	icacontrollerkeeper "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller/keeper"
-	icacontrollertypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller/types"
-	icahost "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host"
-	icahostkeeper "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/keeper"
-	icahosttypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/types"
-	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/types"
-	ibccallbacks "github.com/cosmos/ibc-go/v10/modules/apps/callbacks"
-	transfer "github.com/cosmos/ibc-go/v10/modules/apps/transfer"
-	ibctransferkeeper "github.com/cosmos/ibc-go/v10/modules/apps/transfer/keeper"
-	ibctransfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
-	transferv2 "github.com/cosmos/ibc-go/v10/modules/apps/transfer/v2"
-	ibc "github.com/cosmos/ibc-go/v10/modules/core"
-	porttypes "github.com/cosmos/ibc-go/v10/modules/core/05-port/types"
-	ibcapi "github.com/cosmos/ibc-go/v10/modules/core/api"
-	ibcexported "github.com/cosmos/ibc-go/v10/modules/core/exported"
-	ibckeeper "github.com/cosmos/ibc-go/v10/modules/core/keeper"
-	ibctm "github.com/cosmos/ibc-go/v10/modules/light-clients/07-tendermint"
+	ica "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts"
+	icacontroller "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/controller"
+	icacontrollerkeeper "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/controller/keeper"
+	icacontrollertypes "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/controller/types"
+	icahost "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/host"
+	icahostkeeper "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/host/keeper"
+	icahosttypes "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/host/types"
+	icatypes "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/types"
+	ibccallbacks "github.com/cosmos/ibc-go/v11/modules/apps/callbacks"
+	transfer "github.com/cosmos/ibc-go/v11/modules/apps/transfer"
+	ibctransferkeeper "github.com/cosmos/ibc-go/v11/modules/apps/transfer/keeper"
+	ibctransfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
+	transferv2 "github.com/cosmos/ibc-go/v11/modules/apps/transfer/v2"
+	ibc "github.com/cosmos/ibc-go/v11/modules/core"
+	porttypes "github.com/cosmos/ibc-go/v11/modules/core/05-port/types"
+	ibcapi "github.com/cosmos/ibc-go/v11/modules/core/api"
+	ibcexported "github.com/cosmos/ibc-go/v11/modules/core/exported"
+	ibckeeper "github.com/cosmos/ibc-go/v11/modules/core/keeper"
+	ibctm "github.com/cosmos/ibc-go/v11/modules/light-clients/07-tendermint"
 
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/core/appmodule"
-	"cosmossdk.io/log"
-	storetypes "cosmossdk.io/store/types"
-	"cosmossdk.io/x/evidence"
-	evidencekeeper "cosmossdk.io/x/evidence/keeper"
-	evidencetypes "cosmossdk.io/x/evidence/types"
-	"cosmossdk.io/x/feegrant"
-	feegrantkeeper "cosmossdk.io/x/feegrant/keeper"
-	feegrantmodule "cosmossdk.io/x/feegrant/module"
-	"cosmossdk.io/x/tx/signing"
-	"cosmossdk.io/x/upgrade"
-	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
-	upgradetypes "cosmossdk.io/x/upgrade/types"
+	"cosmossdk.io/log/v2"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
+	"github.com/cosmos/cosmos-sdk/x/evidence"
+	evidencekeeper "github.com/cosmos/cosmos-sdk/x/evidence/keeper"
+	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
+	"github.com/cosmos/cosmos-sdk/x/feegrant"
+	feegrantkeeper "github.com/cosmos/cosmos-sdk/x/feegrant/keeper"
+	feegrantmodule "github.com/cosmos/cosmos-sdk/x/feegrant/module"
+	"github.com/cosmos/cosmos-sdk/x/tx/signing"
+	"github.com/cosmos/cosmos-sdk/x/upgrade"
+	upgradekeeper "github.com/cosmos/cosmos-sdk/x/upgrade/keeper"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -209,9 +209,9 @@ type TokenFactoryApp struct {
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
 
 	IBCKeeper           *ibckeeper.Keeper // IBC Keeper must be a pointer in the app, so we can SetRouter on it correctly
-	ICAControllerKeeper icacontrollerkeeper.Keeper
-	ICAHostKeeper       icahostkeeper.Keeper
-	TransferKeeper      ibctransferkeeper.Keeper
+	ICAControllerKeeper *icacontrollerkeeper.Keeper
+	ICAHostKeeper       *icahostkeeper.Keeper
+	TransferKeeper      *ibctransferkeeper.Keeper
 	WasmKeeper          wasmkeeper.Keeper
 
 	TokenFactoryKeeper tokenfactorykeeper.Keeper
@@ -259,7 +259,6 @@ func NewApp(
 	std.RegisterInterfaces(interfaceRegistry)
 
 	bApp := baseapp.NewBaseApp(AppName, logger, db, txConfig.TxDecoder(), baseAppOptions...)
-	bApp.SetCommitMultiStoreTracer(traceStore)
 	bApp.SetVersion(version.Version)
 	bApp.SetInterfaceRegistry(interfaceRegistry)
 	bApp.SetTxEncoder(txConfig.TxEncoder())
@@ -392,7 +391,6 @@ func NewApp(
 	app.IBCKeeper = ibckeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[ibcexported.StoreKey]),
-		nil,
 		app.UpgradeKeeper,
 		govModAddress,
 	)
@@ -414,11 +412,11 @@ func NewApp(
 		runtime.NewKVStoreService(keys[govtypes.StoreKey]),
 		app.AccountKeeper,
 		app.BankKeeper,
-		app.StakingKeeper,
 		app.DistrKeeper,
 		app.MsgServiceRouter(),
 		govConfig,
 		govModAddress,
+		govkeeper.NewDefaultCalculateVoteResultsAndVotingPower(app.StakingKeeper),
 	)
 
 	// Set legacy router for backwards compatibility with gov v1beta1
@@ -466,9 +464,8 @@ func NewApp(
 	// Create Transfer Keepers
 	app.TransferKeeper = ibctransferkeeper.NewKeeper(
 		appCodec,
+		app.AccountKeeper.AddressCodec(),
 		runtime.NewKVStoreService(keys[ibctransfertypes.StoreKey]),
-		nil,
-		app.IBCKeeper.ChannelKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		app.MsgServiceRouter(),
 		app.AccountKeeper,
@@ -479,8 +476,6 @@ func NewApp(
 	app.ICAHostKeeper = icahostkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[icahosttypes.StoreKey]),
-		nil,
-		app.IBCKeeper.ChannelKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		app.AccountKeeper,
 		app.MsgServiceRouter(),
@@ -490,8 +485,6 @@ func NewApp(
 	app.ICAControllerKeeper = icacontrollerkeeper.NewKeeper(
 		appCodec,
 		runtime.NewKVStoreService(keys[icacontrollertypes.StoreKey]),
-		nil,
-		app.IBCKeeper.ChannelKeeper,
 		app.IBCKeeper.ChannelKeeper,
 		app.MsgServiceRouter(),
 		govModAddress,
@@ -540,9 +533,13 @@ func NewApp(
 
 	// see https://medium.com/the-interchain-foundation/ibc-go-v6-changes-to-interchain-accounts-and-how-it-impacts-your-chain-806c185300d7
 	var noAuthzModule porttypes.IBCModule
-	icaControllerStack = icacontroller.NewIBCMiddlewareWithAuth(noAuthzModule, app.ICAControllerKeeper)
-	icaControllerStack = icacontroller.NewIBCMiddlewareWithAuth(icaControllerStack, app.ICAControllerKeeper)
-	icaControllerStack = ibccallbacks.NewIBCMiddleware(icaControllerStack, app.IBCKeeper.ChannelKeeper, wasmStackIBCHandler, wasm.DefaultMaxIBCCallbackGas)
+	icaStackBuilder := porttypes.NewIBCStackBuilder(app.IBCKeeper.ChannelKeeper)
+	icaStackBuilder.Base(
+		icacontroller.NewIBCMiddlewareWithAuth(noAuthzModule, app.ICAControllerKeeper)).Next(
+		icacontroller.NewIBCMiddlewareWithAuth(icaControllerStack, app.ICAControllerKeeper)).Next(
+		ibccallbacks.NewIBCMiddleware(wasmStackIBCHandler, wasm.DefaultMaxIBCCallbackGas),
+	)
+	icaControllerStack = icaStackBuilder.Build()
 	icaICS4Wrapper := icaControllerStack.(porttypes.ICS4Wrapper)
 	// Since the callbacks middleware itself is an ics4wrapper, it needs to be passed to the ica controller keeper
 	app.ICAControllerKeeper.WithICS4Wrapper(icaICS4Wrapper)
@@ -553,10 +550,14 @@ func NewApp(
 
 	// Create Transfer Stack
 	var transferStack porttypes.IBCModule
-	transferStack = transfer.NewIBCModule(app.TransferKeeper)
-	transferStack = ibccallbacks.NewIBCMiddleware(transferStack, app.IBCKeeper.ChannelKeeper, wasmStackIBCHandler, wasm.DefaultMaxIBCCallbackGas)
+	transferStackBuilder := porttypes.NewIBCStackBuilder(app.IBCKeeper.ChannelKeeper)
+	transferStackBuilder.Base(
+		transfer.NewIBCModule(app.TransferKeeper)).Next(
+		ibccallbacks.NewIBCMiddleware(wasmStackIBCHandler, wasm.DefaultMaxIBCCallbackGas),
+	)
+	transferStack = transferStackBuilder.Build()
 	transferICS4Wrapper := transferStack.(porttypes.ICS4Wrapper)
-	// Since the callbacks middleware itself is an ics4wrapper, it needs to be passed to the ica controller keeper
+	// Since the callbacks middleware itself is an ics4wrapper, it needs to be passed to the transfer keeper
 	app.TransferKeeper.WithICS4Wrapper(transferICS4Wrapper)
 
 	// Create static IBC router, add app routes, then set and seal it
@@ -568,7 +569,8 @@ func NewApp(
 	app.IBCKeeper.SetRouter(ibcRouter)
 
 	ibcRouterV2 := ibcapi.NewRouter().
-		AddRoute(ibctransfertypes.PortID, transferv2.NewIBCModule(app.TransferKeeper))
+		AddRoute(ibctransfertypes.PortID, transferv2.NewIBCModule(app.TransferKeeper)).
+		AddPrefixRoute(wasmkeeper.PortIDPrefixV2, wasmkeeper.NewIBC2Handler(app.WasmKeeper))
 	app.IBCKeeper.SetRouterV2(ibcRouterV2)
 
 	clientKeeper := app.IBCKeeper.ClientKeeper
@@ -605,7 +607,7 @@ func NewApp(
 		wasm.NewAppModule(appCodec, &app.WasmKeeper, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.MsgServiceRouter(), nil),
 		ibc.NewAppModule(app.IBCKeeper),
 		transfer.NewAppModule(app.TransferKeeper),
-		ica.NewAppModule(&app.ICAControllerKeeper, &app.ICAHostKeeper),
+		ica.NewAppModule(app.ICAControllerKeeper, app.ICAHostKeeper),
 		ibctm.NewAppModule(tmLightClientModule),
 		tokenfactory.NewAppModule(app.TokenFactoryKeeper, app.AccountKeeper, app.BankKeeper),
 	)
@@ -653,6 +655,7 @@ func NewApp(
 	)
 
 	app.ModuleManager.SetOrderEndBlockers(
+		banktypes.ModuleName,
 		govtypes.ModuleName,
 		stakingtypes.ModuleName,
 		genutiltypes.ModuleName,
@@ -786,7 +789,7 @@ func NewApp(
 		if err := app.LoadLatestVersion(); err != nil {
 			panic(fmt.Errorf("error loading last version: %w", err))
 		}
-		ctx := app.BaseApp.NewUncachedContext(true, tmproto.Header{})
+		ctx := app.BaseApp.NewContextLegacy(true, tmproto.Header{})
 
 		// Initialize pinned codes in wasmvm as they are not persisted there
 		if err := app.WasmKeeper.InitializePinnedCodes(ctx); err != nil {
@@ -998,7 +1001,9 @@ func (app *TokenFactoryApp) RegisterTendermintService(clientCtx client.Context) 
 }
 
 func (app *TokenFactoryApp) RegisterNodeService(clientCtx client.Context, cfg config.Config) {
-	nodeservice.RegisterNodeService(clientCtx, app.GRPCQueryRouter(), cfg)
+	nodeservice.RegisterNodeService(clientCtx, app.GRPCQueryRouter(), cfg, func() int64 {
+		return app.CommitMultiStore().EarliestVersion()
+	})
 }
 
 // GetMaccPerms returns a copy of the module account permissions

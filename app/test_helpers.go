@@ -21,16 +21,16 @@ import (
 	tmtypes "github.com/cometbft/cometbft/types"
 
 	dbm "github.com/cosmos/cosmos-db"
-	icatypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/controller/types"
-	icahosttypes "github.com/cosmos/ibc-go/v10/modules/apps/27-interchain-accounts/host/types"
-	transfertypes "github.com/cosmos/ibc-go/v10/modules/apps/transfer/types"
-	clienttypes "github.com/cosmos/ibc-go/v10/modules/core/02-client/types" //nolint:all
+	icatypes "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/controller/types"
+	icahosttypes "github.com/cosmos/ibc-go/v11/modules/apps/27-interchain-accounts/host/types"
+	transfertypes "github.com/cosmos/ibc-go/v11/modules/apps/transfer/types"
+	clienttypes "github.com/cosmos/ibc-go/v11/modules/core/02-client/types" //nolint:all
 
-	"cosmossdk.io/log"
+	"cosmossdk.io/log/v2"
 	sdkmath "cosmossdk.io/math"
-	pruningtypes "cosmossdk.io/store/pruning/types"
-	"cosmossdk.io/store/snapshots"
-	snapshottypes "cosmossdk.io/store/snapshots/types"
+	pruningtypes "github.com/cosmos/cosmos-sdk/store/v2/pruning/types"
+	"github.com/cosmos/cosmos-sdk/store/v2/snapshots"
+	snapshottypes "github.com/cosmos/cosmos-sdk/store/v2/snapshots/types"
 
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -130,8 +130,6 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 
 	app, genesisState := setup(t, true)
 
-	ctx := app.BaseApp.NewUncachedContext(true, tmproto.Header{Height: 1, ChainID: "testing", Time: time.Now().UTC()})
-
 	genesisState = genesisStateWithValSet(t, app, genesisState, valSet, genAccs, balances...)
 
 	stateBytes, err := json.MarshalIndent(genesisState, "", " ")
@@ -150,12 +148,21 @@ func SetupWithGenesisValSet(t *testing.T, valSet *tmtypes.ValidatorSet, genAccs 
 	)
 	require.NoError(t, err)
 
-	// commit genesis changes
+	// FinalizeBlock flushes the genesis state from InitChain into app.cms (via workingHash → Write)
+	_, err = app.FinalizeBlock(&abci.RequestFinalizeBlock{
+		Height:             app.LastBlockHeight() + 1,
+		Hash:               app.LastCommitID().Hash,
+		NextValidatorsHash: valSet.Hash(),
+	})
+	require.NoError(t, err)
+
+	// commit genesis changes — checkState is now reset from the fully committed state
 	_, err = app.Commit()
 	require.NoError(t, err)
 
-	// checking the error here throws for standard collection types. Likely something with encoding
-	app.BeginBlocker(ctx) // nolint:errcheck
+	// Create context after Commit so it reads from the committed (post-genesis) state
+	now := time.Now().UTC()
+	ctx := app.BaseApp.NewContextLegacy(true, tmproto.Header{Height: 1, ChainID: "testing", Time: now})
 
 	return ctx, app
 }
@@ -188,7 +195,7 @@ func setup(t *testing.T, withGenesis bool, opts ...wasmkeeper.Option) (*TokenFac
 	)
 
 	// Setup Context
-	ctx := app.BaseApp.NewUncachedContext(false, tmproto.Header{
+	ctx := app.BaseApp.NewNextBlockContext(tmproto.Header{
 		ChainID: SimAppChainID,
 		Height:  1,
 		Time:    time.Now().UTC(),

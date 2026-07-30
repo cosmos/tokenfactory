@@ -19,9 +19,9 @@ import (
 
 	dbm "github.com/cosmos/cosmos-db"
 
-	"cosmossdk.io/log"
-	storetypes "cosmossdk.io/store/types"
-	"cosmossdk.io/x/feegrant"
+	"cosmossdk.io/log/v2"
+	storetypes "github.com/cosmos/cosmos-sdk/store/v2/types"
+	"github.com/cosmos/cosmos-sdk/x/feegrant"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client/flags"
