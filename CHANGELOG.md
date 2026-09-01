@@ -1,15 +1,19 @@
 # CHANGELOG
 
-## UNRELEASED
+## v0.54.0
+
+### FEATURES
+
+* Cosmos SDK has been upgraded to v0.54.
 
 ### DEPENDENCIES
 
-* Bump golang to v1.26.5 ([#XX](https://github.com/cosmos/tokenfactory/pull/XX))
-* Bump `cosmos-sdk` to v0.54.4 ([#XX](https://github.com/cosmos/tokenfactory/pull/XX))
-* Bump `cometbft` to v0.39.4 ([#XX](https://github.com/cosmos/tokenfactory/pull/XX))
-* Bump `ibc-go` to v11.2.0 ([#XX](https://github.com/cosmos/tokenfactory/pull/XX))
-* Bump `wasmd` to v0.70.3 ([#XX](https://github.com/cosmos/tokenfactory/pull/XX))
-* Bump `wasmvm` to v3.0.7 ([#XX](https://github.com/cosmos/tokenfactory/pull/XX))
+* Bump golang to v1.26.5 ([#22](https://github.com/cosmos/tokenfactory/pull/22))
+* Bump `cosmos-sdk` to v0.54.4 ([#22](https://github.com/cosmos/tokenfactory/pull/22))
+* Bump `cometbft` to v0.39.4 ([#22](https://github.com/cosmos/tokenfactory/pull/22))
+* Bump `ibc-go` to v11.2.0 ([#22](https://github.com/cosmos/tokenfactory/pull/22))
+* Bump `wasmd` to v0.70.3 ([#22](https://github.com/cosmos/tokenfactory/pull/22))
+* Bump `wasmvm` to v3.0.7 ([#22](https://github.com/cosmos/tokenfactory/pull/22))
 * Bump `interchaintest` to v11 ([#21](https://github.com/cosmos/tokenfactory/pull/21))
 
 ## v0.53.6
